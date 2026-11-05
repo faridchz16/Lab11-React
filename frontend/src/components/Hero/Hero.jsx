@@ -9,7 +9,8 @@ const BADGE_MODIFIERS = {
 
 // Banner that highlights the featured movie.
 // Receives the whole movie and destructures only the fields it renders.
-function Hero({ movie }) {
+// children fills the actions area, so the banner does not depend on what goes in it.
+function Hero({ movie, children }) {
   const { title, image, synopsis, classification, rating } = movie
   // Unknown classifications get the neutral base badge instead of a misleading color.
   const badgeModifier = BADGE_MODIFIERS[classification]
@@ -43,6 +44,7 @@ function Hero({ movie }) {
             </span>
           </div>
           <p className="hero__synopsis">{synopsis}</p>
+          {children}
         </div>
       </div>
     </section>

@@ -26,6 +26,7 @@
   flex: 1 1 calc(var(--space-8) * 5);
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-3);
 }
 
