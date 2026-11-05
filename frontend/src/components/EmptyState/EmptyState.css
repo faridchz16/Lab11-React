@@ -1,0 +1,13 @@
+.empty-state {
+  align-items: center;
+  padding: var(--space-7) var(--space-4);
+  background-color: var(--color-surface);
+  border: thin dashed var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.empty-state__icon {
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-tight);
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { movies, cinema } from './data/movies.js'
 import Button from './components/Button/Button.jsx'
 import Header from './components/Header/Header.jsx'
@@ -25,9 +25,9 @@ function App() {
   // Emptying the box is not a typing burst: the full list comes back at once.
   const searchQuery = searchText === '' ? '' : debouncedText
 
-  useEffect(() => {
-    debugLog(`[search] applied: "${searchQuery}"`)
-  }, [searchQuery])
+  function clearSearch() {
+    setSearchText('')
+  }
 
   function handleSearchChange(text) {
     debugLog(`[search] keystroke: "${text}"`)
@@ -58,13 +58,15 @@ function App() {
           <MovieSearch
             value={searchText}
             onChange={handleSearchChange}
-            onClear={() => setSearchText('')}
+            onClear={clearSearch}
           />
         </div>
         <MovieList
           movies={movies}
+          query={searchQuery}
           favoriteIds={favoriteIds}
           onToggleFavorite={toggleFavorite}
+          onClearSearch={clearSearch}
         />
       </main>
       <Footer name={cinema.name} contact={cinema.contact} />
