@@ -52,15 +52,13 @@ function App() {
       />
       <main>
         <Hero movie={featured}>
-          <Button href="#cartelera">Ver cartelera</Button>
-        </Hero>
-        <div className="container">
           <MovieSearch
             value={searchText}
             onChange={handleSearchChange}
             onClear={clearSearch}
           />
-        </div>
+          <Button href="#cartelera">Ver cartelera</Button>
+        </Hero>
         <MovieList
           movies={movies}
           query={searchQuery}
