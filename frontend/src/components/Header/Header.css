@@ -46,6 +46,15 @@
   color: var(--color-text);
 }
 
+.header__favorites {
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--color-surface-alt);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
 .header__link:hover {
   color: var(--color-text);
   background-color: var(--color-surface-alt);

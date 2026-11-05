@@ -1,7 +1,7 @@
 import './Header.css'
 
-// Top bar with the cinema name and the main navigation links.
-function Header({ name, navLinks }) {
+// Top bar with the cinema name, the main navigation links and the favorites counter.
+function Header({ name, navLinks, favoriteCount }) {
   return (
     <header className="header">
       <div className="container header__inner">
@@ -21,6 +21,10 @@ function Header({ name, navLinks }) {
             ))}
           </ul>
         </nav>
+        <p className="header__favorites">
+          <span aria-hidden="true">♥ </span>
+          {favoriteCount} {favoriteCount === 1 ? 'favorita' : 'favoritas'}
+        </p>
       </div>
     </header>
   )
