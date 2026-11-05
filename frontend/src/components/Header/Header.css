@@ -60,3 +60,11 @@
   background-color: var(--color-surface-alt);
   text-decoration: none;
 }
+
+/* On phones the name and the counter share a row, so the sticky bar stays short. */
+@media (max-width: 40rem) {
+  .header__inner nav {
+    order: 1;
+    flex-basis: 100%;
+  }
+}
