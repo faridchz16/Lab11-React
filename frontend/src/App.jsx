@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { movies, cinema } from './data/movies.js'
 import Button from './components/Button/Button.jsx'
 import Header from './components/Header/Header.jsx'
@@ -8,6 +8,7 @@ import MovieList from './components/MovieList/MovieList.jsx'
 import MovieSearch from './components/MovieSearch/MovieSearch.jsx'
 import { useDebouncedValue } from './hooks/useDebouncedValue.js'
 import { debugLog } from './utils/debugLog.js'
+import { loadFavoriteIds, saveFavoriteIds } from './utils/favoritesStorage.js'
 
 // Pause after the last keystroke before the search is applied.
 const SEARCH_DELAY_MS = 300
@@ -19,7 +20,8 @@ const featured = movies.reduce((best, movie) =>
 
 // Root component of the movie billboard app.
 function App() {
-  const [favoriteIds, setFavoriteIds] = useState([])
+  // Lazy initializer: localStorage is read once, not on every render.
+  const [favoriteIds, setFavoriteIds] = useState(loadFavoriteIds)
   const [searchText, setSearchText] = useState('')
   const debouncedText = useDebouncedValue(searchText, SEARCH_DELAY_MS)
   // Emptying the box is not a typing burst: the full list comes back at once.
@@ -33,6 +35,10 @@ function App() {
     debugLog(`[search] keystroke: "${text}"`)
     setSearchText(text)
   }
+
+  useEffect(() => {
+    saveFavoriteIds(favoriteIds)
+  }, [favoriteIds])
 
   // Adds the movie when it is missing from the list and removes it otherwise.
   function toggleFavorite(movieId) {
