@@ -5,6 +5,7 @@ import Header from './components/Header/Header.jsx'
 import Footer from './components/Footer/Footer.jsx'
 import Hero from './components/Hero/Hero.jsx'
 import MovieList from './components/MovieList/MovieList.jsx'
+import MovieSearch from './components/MovieSearch/MovieSearch.jsx'
 
 // The featured movie is the highest-rated one.
 const featured = movies.reduce((best, movie) =>
@@ -14,6 +15,7 @@ const featured = movies.reduce((best, movie) =>
 // Root component of the movie billboard app.
 function App() {
   const [favoriteIds, setFavoriteIds] = useState([])
+  const [searchText, setSearchText] = useState('')
 
   // Adds the movie when it is missing from the list and removes it otherwise.
   function toggleFavorite(movieId) {
@@ -35,6 +37,13 @@ function App() {
         <Hero movie={featured}>
           <Button href="#cartelera">Ver cartelera</Button>
         </Hero>
+        <div className="container">
+          <MovieSearch
+            value={searchText}
+            onChange={setSearchText}
+            onClear={() => setSearchText('')}
+          />
+        </div>
         <MovieList
           movies={movies}
           favoriteIds={favoriteIds}

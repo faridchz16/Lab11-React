@@ -1,0 +1,19 @@
+.movie-search {
+  width: 100%;
+  max-width: calc(var(--space-8) * 8);
+}
+
+.movie-search__row {
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+}
+
+.movie-search__input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The app has its own clear button, so the native one would be repeated. */
+.movie-search__input::-webkit-search-cancel-button {
+  display: none;
+}
