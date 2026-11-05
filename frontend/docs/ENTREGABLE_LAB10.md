@@ -1,6 +1,6 @@
 # Entregable – Laboratorio 10: Componentes y eventos
 
-**Alumno:** Alonso Abad Mejia · **Curso:** Desarrollo de Aplicaciones Empresariales · **Sección:** 4-C24-A
+**Integrantes:** Alonso Abad Mejia y Farid Chavez · **Curso:** Desarrollo de Aplicaciones Empresariales · **Sección:** 4-C24-A
 
 El proyecto es acumulativo: parte de la cartelera del laboratorio 09
 ([Lab09-React](https://github.com/faridchz16/Lab09-React)) y conserva su historial. El backend

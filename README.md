@@ -2,7 +2,7 @@
 
 Laboratorio 10 de Desarrollo de Aplicaciones Empresariales (DAE). Continúa el laboratorio 09 sobre la cartelera **Cine Aurora**, cuya documentación se conserva más abajo, y añade componentes reutilizables, estado y eventos en `frontend/`. El backend Django del laboratorio 08 sigue en la raíz sin cambios.
 
-**Alumno:** Alonso Abad Mejia
+**Integrantes:** Alonso Abad Mejia y Farid Chavez
 
 ## Qué añade este laboratorio
 
