@@ -52,3 +52,7 @@ Están en `../.claude/agents/` y son el equivalente a los de opencode del lab 08
 
 18 commits del laboratorio 09, desde `f1a9673` (creación del proyecto con Vite) hasta `3a05a81`
 (registro de los errores de JSX). La lista completa está en el README de la raíz.
+
+## Laboratorio 10
+
+Se añadieron `Button`, `MovieSearch`, `EmptyState`, el hook `useDebouncedValue` y las utilidades de `src/utils/`. Las pruebas se ejecutan con `npm test`. El detalle está en [docs/ENTREGABLE_LAB10.md](docs/ENTREGABLE_LAB10.md).

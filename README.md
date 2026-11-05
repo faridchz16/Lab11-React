@@ -1,3 +1,38 @@
+# Lab10: Componentes y eventos en la cartelera con React
+
+Laboratorio 10 de Desarrollo de Aplicaciones Empresariales (DAE). Continúa el laboratorio 09 sobre la cartelera **Cine Aurora**, cuya documentación se conserva más abajo, y añade componentes reutilizables, estado y eventos en `frontend/`. El backend Django del laboratorio 08 sigue en la raíz sin cambios.
+
+**Alumno:** Alonso Abad Mejia
+
+## Qué añade este laboratorio
+
+- **`Button`:** un solo componente para todos los botones. Recibe el contenido por `children`, el aspecto por `variant` y `size`, y se convierte en enlace si recibe `href`.
+- **Favoritas:** el estado vive en `App`. `MovieCard` avisa con la función que recibe y `Header` muestra el contador.
+- **`MovieSearch`:** entrada controlada integrada en el banner, junto a la llamada a la acción.
+- **Retardo:** `useDebouncedValue` aplica la búsqueda 300 ms después de la última tecla.
+- **Filtrado y `EmptyState`:** `MovieList` filtra sin distinguir mayúsculas ni tildes y muestra un estado vacío si nada coincide.
+- **Persistencia:** las favoritas se guardan en `localStorage` y se recuperan al cargar.
+
+## Puesta en marcha
+
+```powershell
+cd frontend
+npm install
+npm run dev      # http://localhost:5173/
+npm test         # 26 pruebas con Vitest y Testing Library
+npm run lint
+npm run build
+```
+
+## Documentación
+
+- [Entregable del laboratorio 10](frontend/docs/ENTREGABLE_LAB10.md): dónde vive cada dato, qué componentes son reutilizables y por qué, medición del retardo y casos de prueba.
+- [Capturas del sistema](Evidencias_lab10/).
+
+![Arquitectura de componentes](Evidencias_lab10/00_arquitectura_componentes.png)
+
+---
+
 # Lab09: Cartelera de Cine con React + Vite
 
 Este repositorio contiene el desarrollo del proyecto Lab 09 de Desarrollo de Aplicaciones Empresariales (DAE), enfocado en la construcción de una interfaz web de cartelera de cine con **React** y **Vite**. Es una continuación acumulativa del Lab 08: conserva en la raíz el backend Django de la API de cuestionarios (documentado en el repositorio [Lab08-Django](https://github.com/faridchz16/Lab08-Django)), y añade en la carpeta `frontend/` la aplicación React de este laboratorio.
