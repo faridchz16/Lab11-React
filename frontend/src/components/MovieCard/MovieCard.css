@@ -13,6 +13,10 @@
   box-shadow: var(--shadow-md);
 }
 
+.movie-card--favorite {
+  border-color: var(--color-primary);
+}
+
 .movie-card__poster {
   width: 100%;
   height: auto;

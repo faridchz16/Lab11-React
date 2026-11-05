@@ -1,11 +1,15 @@
+import Button from '../Button/Button.jsx'
 import './MovieCard.css'
 
 // Card for a single movie: poster, title, rating and showtimes.
 // Receives the whole movie and destructures only the fields it renders.
-function MovieCard({ movie }) {
-  const { title, image, rating, showtimes } = movie
+// It owns no favorite state: it shows isFavorite and reports clicks to its parent.
+function MovieCard({ movie, isFavorite, onToggleFavorite }) {
+  const { id, title, image, rating, showtimes } = movie
+  const favoriteLabel = isFavorite ? 'En favoritas' : 'Añadir a favoritas'
+
   return (
-    <article className="movie-card">
+    <article className={`movie-card${isFavorite ? ' movie-card--favorite' : ''}`}>
       <img
         className="movie-card__poster"
         src={image}
@@ -28,6 +32,15 @@ function MovieCard({ movie }) {
             </li>
           ))}
         </ul>
+        <Button
+          variant={isFavorite ? 'primary' : 'secondary'}
+          size="sm"
+          aria-label={`${favoriteLabel}: ${title}`}
+          onClick={() => onToggleFavorite(id)}
+        >
+          <span aria-hidden="true">{isFavorite ? '♥' : '♡'}</span>
+          {favoriteLabel}
+        </Button>
       </div>
     </article>
   )
