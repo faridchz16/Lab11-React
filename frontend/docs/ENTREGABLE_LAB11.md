@@ -440,3 +440,157 @@ limpieza): fallaron la de la ráfaga y la del desmontaje. Después se restauró.
 | `npm test` | 8 archivos, 40 pruebas superadas (37 anteriores − 2 de `useDebouncedValue` + 5 de `useDebounce`) |
 | `npm run lint` | Sin errores ni avisos |
 | `npm run build` | Correcto: 41 módulos, JS 242.68 kB (77.01 kB gzip), el mismo tamaño que en el paso 4 |
+
+## Paso 6: Hook propio `useWindowSize` para las tarjetas por fila
+
+### El código del hook
+
+`frontend/src/hooks/useWindowSize.js`:
+
+```js
+export const RESIZE_DELAY_MS = 150
+
+function readWindowSize() {
+  return { width: window.innerWidth, height: window.innerHeight }
+}
+
+export function useWindowSize() {
+  const [size, setSize] = useState(readWindowSize)                 // 1
+
+  useEffect(() => {                                                 // 2
+    function handleResize() {                                       // 3
+      const next = readWindowSize()
+      setSize((current) =>                                          // 4
+        current.width === next.width && current.height === next.height ? current : next,
+      )
+    }
+
+    window.addEventListener('resize', handleResize)                 // 5
+    return () => window.removeEventListener('resize', handleResize) // 6
+  }, [])                                                            // 7
+
+  return useDebounce(size, RESIZE_DELAY_MS)                         // 8
+}
+```
+
+1. **Estado inicial perezoso:** `useState(readWindowSize)` recibe la función, no su resultado.
+   Así el tamaño se lee una sola vez, en el primer render, y el hook devuelve el tamaño real desde
+   el principio.
+2. **Suscribirse a `window` es un efecto secundario**, así que va en `useEffect` y no en el cuerpo
+   del componente, que debe ser puro.
+3. **El manejador** se define dentro del efecto, así que es la misma función al añadirla y al
+   quitarla.
+4. **La actualización** devuelve el mismo objeto si el tamaño no cambió. React ve el mismo valor y
+   se salta el render; pasa, por ejemplo, con eventos `resize` que solo cambian el zoom.
+5. **Se suscribe** una sola vez, al montar.
+6. **La limpieza** quita **la misma** función. Sin esto, cada montaje dejaría un listener vivo que
+   intentaría actualizar un componente desmontado.
+7. **Dependencias vacías:** el efecto no lee nada de las props ni del estado, así que se ejecuta
+   solo al montar, y la limpieza solo al desmontar.
+8. **Devuelve el tamaño a través de `useDebounce`** (paso 5).
+
+Respeta las reglas de los hooks: `useState`, `useEffect` y `useDebounce` se llaman siempre, en el
+mismo orden y en el nivel superior. `npm run lint` no da avisos.
+
+### Por qué usa `useDebounce` por dentro
+
+Arrastrar el borde de la ventana dispara decenas de eventos `resize` por segundo, uno por cada
+pocos píxeles. Las columnas solo cambian al cruzar 600, 900 o 1200 px, así que no tiene sentido
+recalcular la rejilla en cada uno.
+
+- **El hook no reinventa el retardo:** reutiliza `useDebounce`. Así el mismo hook sirve para el
+  texto del buscador y para el tamaño de la ventana, porque es genérico.
+- **150 ms en lugar de 300:** el redimensionado debe sentirse rápido, y el buscador necesita más
+  margen entre teclas.
+- **Lo que se retrasa es el valor devuelto.** El estado interno sí cambia en cada evento, así que
+  `MovieList` hace un render ligero por evento. Pero el tamaño que devuelve el hook, y por tanto
+  `columns` y la rejilla, cambia **una sola vez** cuando el usuario suelta el borde. Lo comprueba
+  la prueba de la ráfaga.
+
+### Función pura `columnsForWidth` y uso en `MovieList`
+
+`frontend/src/utils/columnsForWidth.js` decide las columnas solo a partir del ancho. No toca el DOM
+ni el estado, así que se prueba con una tabla de valores. Ante un ancho inválido (`0`, negativo,
+`NaN`) devuelve 1 columna.
+
+| Ancho de la ventana | Columnas |
+|---------------------|----------|
+| menos de 600 px | 1 |
+| de 600 a 899 px | 2 |
+| de 900 a 1199 px | 3 |
+| 1200 px o más | 4 |
+
+En `MovieList`:
+
+```jsx
+const { width } = useWindowSize()
+const columns = columnsForWidth(width)
+// ...
+<div className="grid movie-list__grid" style={{ '--columns': columns }} data-columns={columns}>
+```
+
+- **La rejilla es la utilidad `.grid` del paso 2:**
+  `grid-template-columns: repeat(var(--columns, 1), minmax(var(--grid-min-column), 1fr))`, con el
+  hueco `--grid-gap`.
+- **Se quitó el `auto-fill`** de `MovieList.css`: el número de columnas ya no lo decide el
+  navegador, sino `columnsForWidth`.
+- **`data-columns`** deja el valor a la vista en las herramientas de desarrollo y en las pruebas.
+- **`App` no cambia:** la maquetación es asunto de `MovieList`, que obtiene las columnas de su
+  propio hook. `columns` no se guarda en estado: se calcula a partir de `width`.
+
+**Cambio visible respecto al `auto-fill`:** antes, a 1024 px salían 4 columnas y a 768 px salían 3,
+porque el navegador metía tantas columnas de 224 px como cupieran. Ahora salen 3 y 2, como indica
+la tabla. A 1440 px y en móvil no cambia nada.
+
+### Hook → dónde se usa
+
+| Hook | Dónde se usa | Para qué |
+|------|--------------|----------|
+| `useDebounce` | `App` (buscador) | Aplica el texto de búsqueda 300 ms después de la última tecla |
+| `useDebounce` | `useWindowSize` | Entrega el tamaño de la ventana 150 ms después del último `resize` |
+| `useWindowSize` | `MovieList` | Calcula `--columns` con `columnsForWidth` |
+
+`useDebounce` se reutiliza así en dos sitios distintos, con dos tipos de valor (texto y objeto) y
+dos retardos.
+
+### Pruebas
+
+| Archivo | Pruebas |
+|---------|---------|
+| `useWindowSize.test.js` (4) | Devuelve el tamaño actual al momento; con temporizadores falsos, el tamaño nuevo llega a los 150 ms y no antes; un arrastre de 5 eventos produce una sola actualización (se registran los anchos devueltos: `[1440, 900]`); al desmontar quita **el mismo** listener que añadió y un `resize` posterior no programa nada |
+| `columnsForWidth.test.js` (12) | Tabla de anchos con los bordes de cada tramo (599/600, 899/900, 1199/1200) y anchos inválidos |
+| `MovieList.test.jsx` (2, nuevo) | A 1440 px la rejilla tiene la clase `grid` y `--columns: 4`; al cambiar a 390 px y pasar el retardo, pasa a `--columns: 1` |
+
+### Evidencias
+
+Capturas de la parte visible, desplazada hasta la cartelera, en cuatro anchos. En cada una, el
+script escribió en la consola el valor real de la rejilla, y las columnas que calcula el navegador
+coinciden con `--columns`:
+
+```
+CHECK innerWidth=1440 --columns=4 tracks=4
+CHECK innerWidth=1024 --columns=3 tracks=3
+CHECK innerWidth=768  --columns=2 tracks=2
+CHECK innerWidth=390  --columns=1 tracks=1
+```
+
+| Evidencia | Explicación |
+|-----------|-------------|
+| [13_paso6_1440px_4columnas.png](../../Evidencias_lab11/13_paso6_1440px_4columnas.png) | 1440x900: 4 tarjetas por fila |
+| [14_paso6_1024px_3columnas.png](../../Evidencias_lab11/14_paso6_1024px_3columnas.png) | 1024x768: 3 tarjetas por fila (antes, con `auto-fill`, eran 4) |
+| [15_paso6_768px_2columnas.png](../../Evidencias_lab11/15_paso6_768px_2columnas.png) | 768x1024 (tableta vertical): 2 tarjetas por fila (antes eran 3) |
+| [16_paso6_390px_1columna.png](../../Evidencias_lab11/16_paso6_390px_1columna.png) | 390x844 (móvil): 1 tarjeta por fila, cabecera compacta |
+| [17_paso6_tests.txt](../../Evidencias_lab11/17_paso6_tests.txt) | Salida detallada de las pruebas: 11 archivos y 58 pruebas superadas |
+
+![1440 px, 4 columnas](../../Evidencias_lab11/13_paso6_1440px_4columnas.png)
+![1024 px, 3 columnas](../../Evidencias_lab11/14_paso6_1024px_3columnas.png)
+![768 px, 2 columnas](../../Evidencias_lab11/15_paso6_768px_2columnas.png)
+![390 px, 1 columna](../../Evidencias_lab11/16_paso6_390px_1columna.png)
+
+### Resultados
+
+| Comando | Resultado |
+|---------|-----------|
+| `npm test` | 11 archivos, 58 pruebas superadas (40 anteriores + 18 nuevas) |
+| `npm run lint` | Sin errores ni avisos |
+| `npm run build` | Correcto: 43 módulos, JS 243.26 kB (77.22 kB gzip), CSS 10.96 kB |

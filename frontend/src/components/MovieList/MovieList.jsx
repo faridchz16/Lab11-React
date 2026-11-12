@@ -1,4 +1,6 @@
 import { useEffect, useMemo } from 'react'
+import { useWindowSize } from '../../hooks/useWindowSize.js'
+import { columnsForWidth } from '../../utils/columnsForWidth.js'
 import { debugLog } from '../../utils/debugLog.js'
 import { filterMovies } from '../../utils/filterMovies.js'
 import Button from '../Button/Button.jsx'
@@ -12,6 +14,9 @@ function MovieList({ movies, query, favoriteIds, onToggleFavorite, onClearSearch
   // Derived data, not state: it is always computable from movies and query.
   const visibleMovies = useMemo(() => filterMovies(movies, query), [movies, query])
   const trimmedQuery = query.trim()
+  // Layout is this component's own concern: App does not pass the column count.
+  const { width } = useWindowSize()
+  const columns = columnsForWidth(width)
 
   useEffect(() => {
     debugLog(`[search] filtered "${query}": ${visibleMovies.length} movies`)
@@ -38,7 +43,11 @@ function MovieList({ movies, query, favoriteIds, onToggleFavorite, onClearSearch
               </Button>
             </EmptyState>
           ) : (
-            <div className="movie-list__grid">
+            <div
+              className="grid movie-list__grid"
+              style={{ '--columns': columns }}
+              data-columns={columns}
+            >
               {visibleMovies.map((movie) => (
                 <MovieCard
                   key={movie.id}
