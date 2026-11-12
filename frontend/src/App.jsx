@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { movies, cinema } from './data/movies.js'
+import { apiMovies, cinema } from './data/movies.js'
 import Button from './components/Button/Button.jsx'
 import Header from './components/Header/Header.jsx'
 import Footer from './components/Footer/Footer.jsx'
@@ -7,11 +7,15 @@ import Hero from './components/Hero/Hero.jsx'
 import MovieList from './components/MovieList/MovieList.jsx'
 import MovieSearch from './components/MovieSearch/MovieSearch.jsx'
 import { useDebouncedValue } from './hooks/useDebouncedValue.js'
+import { adaptMovies } from './utils/adaptMovie.js'
 import { debugLog } from './utils/debugLog.js'
 import { loadFavoriteIds, saveFavoriteIds } from './utils/favoritesStorage.js'
 
 // Pause after the last keystroke before the search is applied.
 const SEARCH_DELAY_MS = 300
+
+// The billboard goes through the adapter once: from here on the app only sees its own model.
+const movies = adaptMovies(apiMovies)
 
 // The featured movie is the highest-rated one.
 const featured = movies.reduce((best, movie) =>

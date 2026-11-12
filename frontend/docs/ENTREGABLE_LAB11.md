@@ -109,3 +109,106 @@ ni avisos.
   página nunca se desplazaba. Se corrigió en el script, no en la aplicación: con `--full` recorre
   la página, espera a que carguen las imágenes y vuelve arriba de forma instantánea. Si vuelve
   con `scroll-behavior: smooth`, la cabecera fija aparece a media página.
+
+## Paso 3: Adaptador de películas
+
+### Qué es el patrón adaptador
+
+Un adaptador traduce los datos de una forma que no controlamos (la respuesta de una API) a la
+forma que espera nuestra aplicación. Se coloca en la frontera: los datos entran por él una sola
+vez y, a partir de ahí, la aplicación solo conoce su propio modelo. Si mañana la API cambia un
+nombre o deja de enviar un campo, se corrige el adaptador y ningún componente se entera.
+
+### Datos con forma de API
+
+`frontend/src/data/movies.js` ahora exporta `apiMovies`: las mismas 8 películas con los mismos
+valores, pero con los nombres en `snake_case` que usaría un servidor. Ya no se pinta
+directamente: siempre pasa por `adaptMovies`. El objeto `cinema` (nombre, menú y contacto) no
+cambió, porque no viene de la API de películas.
+
+| Campo de la API | Campo de la app | Transformación |
+|-----------------|-----------------|----------------|
+| `id` | `id` | Se copia; `null` si falta |
+| `title` | `title` | Texto sin espacios sobrantes; `'Sin título'` si falta o está vacío |
+| `poster_url` | `image` | Texto; `null` si falta, para que React no ponga `src=""` y se vea el texto alternativo |
+| `overview` | `synopsis` | Texto; `''` si falta |
+| `certification` | `classification` | Texto; `'Sin clasificar'` si falta (`Hero` lo muestra con la insignia neutra) |
+| `vote_average` | `rating` | Número en la escala 0-10; `0` si falta o no es un número; se limita a 0-10; acepta texto numérico (`'7.5'`) |
+| `show_times` | `showtimes` | Lista sin entradas vacías; `[]` si falta o no es una lista |
+
+### El código del adaptador
+
+`frontend/src/utils/adaptMovie.js`:
+
+```js
+export function adaptMovie(apiMovie = {}) {
+  const movie = apiMovie ?? {}
+  return {
+    id: movie.id ?? null,
+    title: toText(movie.title, 'Sin título'),
+    image: toText(movie.poster_url, null),
+    synopsis: toText(movie.overview),
+    classification: toText(movie.certification, UNKNOWN_CLASSIFICATION),
+    rating: toRating(movie.vote_average),
+    showtimes: toShowtimes(movie.show_times),
+  }
+}
+
+export function adaptMovies(list) {
+  return Array.isArray(list) ? list.map(adaptMovie) : []
+}
+```
+
+- **`adaptMovie`** construye un objeto nuevo con los 7 campos de la app. Solo lee los campos que
+  conoce, así que los campos extra de la API no se cuelan en la aplicación. `apiMovie ?? {}`
+  evita que falle si llega `null` o `undefined`.
+- **Tres funciones auxiliares** se encargan de los valores por defecto:
+  - `toText` acepta solo texto no vacío y, si no, devuelve el valor por defecto.
+  - `toRating` convierte a número, usa `0` si no es válido y lo mantiene entre 0 y 10.
+  - `toShowtimes` devuelve `[]` si no recibe una lista y quita los horarios vacíos.
+- **`adaptMovies`** aplica `adaptMovie` a toda la lista. Si la respuesta no es una lista, devuelve
+  una cartelera vacía en lugar de romper el `.map` de `MovieList`.
+
+En `App.jsx`, la cartelera se adapta una sola vez, fuera del componente, porque los datos son
+estáticos:
+
+```js
+const movies = adaptMovies(apiMovies)
+```
+
+El adaptador se reutilizará en el paso 7 para los estrenos.
+
+### Por qué los componentes no cambiaron
+
+`Header`, `Hero`, `MovieList` y `MovieCard` reciben el mismo modelo
+`{ id, title, image, synopsis, classification, rating, showtimes }` que antes. El cambio de forma
+se queda en la frontera (`data/` → `adaptMovie` → `App`). Se comprobó con Node que
+`adaptMovies(apiMovies)` es **idéntico** (`deepStrictEqual`) al arreglo `movies` del commit
+anterior, y la captura de la página completa es idéntica byte a byte a la del paso 2.
+
+### Pruebas
+
+`frontend/src/utils/adaptMovie.test.js` añade 9 pruebas:
+
+| Grupo | Qué comprueba |
+|-------|---------------|
+| Mapeo correcto | Cada campo de la API llega a su campo de la app, y el resultado solo tiene los 7 campos del modelo aunque la API envíe campos extra |
+| Campos que faltan | Película con solo `id`; película `null` o `undefined`; valores inválidos (título en blanco, póster vacío, `vote_average: 'n/a'`, `show_times` que no es lista); valoración fuera de 0-10 o en texto; horarios vacíos |
+| Lista completa | `adaptMovies(apiMovies)` devuelve las 8 películas, en orden y con todos sus valores; una respuesta que no es lista da `[]` |
+
+### Evidencias
+
+| Evidencia | Explicación |
+|-----------|-------------|
+| [05_paso3_cartelera_adaptada.png](../../Evidencias_lab11/05_paso3_cartelera_adaptada.png) | Página completa a 1440x900 con la cartelera pasando por `adaptMovies`: las 8 películas, la destacada (*Ecos de Marte*, 8.4) y las insignias se ven igual que antes. La consola no muestra errores ni avisos. |
+| [06_paso3_tests.txt](../../Evidencias_lab11/06_paso3_tests.txt) | Salida detallada de las pruebas: 8 archivos y 35 pruebas superadas, 9 de ellas del adaptador. |
+
+![Cartelera adaptada](../../Evidencias_lab11/05_paso3_cartelera_adaptada.png)
+
+### Resultados
+
+| Comando | Resultado |
+|---------|-----------|
+| `npm test` | 8 archivos, 35 pruebas superadas (26 anteriores + 9 del adaptador) |
+| `npm run lint` | Sin errores ni avisos |
+| `npm run build` | Correcto: 38 módulos, JS 229.51 kB (72.13 kB gzip) |
