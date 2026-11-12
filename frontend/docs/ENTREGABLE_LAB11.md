@@ -1438,3 +1438,143 @@ CHECK input=""     peliculas=8 boton=false estado=""
 | `npm test` | 18 archivos, 104 pruebas superadas (100 anteriores + 4 nuevas) |
 | `npm run lint` | Sin errores ni avisos |
 | `npm run build` | Correcto: 94 módulos; JS 350.84 kB (109.63 kB gzip) |
+
+## Paso 11: Árbol de componentes y estado elevado
+
+Este paso no cambia código: documenta cómo quedó la aplicación al final del laboratorio. El árbol
+se armó recorriendo las firmas reales de cada componente y cada llamada a un hook en `src/`.
+
+### 1. Diagrama
+
+![Árbol de componentes](../../Evidencias_lab11/31_paso11_arbol_componentes.png)
+
+Archivos: [31_paso11_arbol_componentes.svg](../../Evidencias_lab11/31_paso11_arbol_componentes.svg)
+(vectorial) y [31_paso11_arbol_componentes.png](../../Evidencias_lab11/31_paso11_arbol_componentes.png)
+(2480x3080 px, para pegar en Word).
+
+Cómo leerlo:
+- **Cajas:** una por componente.
+- **Colores de cada línea:**
+  - **Rojo, ESTADO:** `useState` o un hook que lo contiene.
+  - **Azul, DERIVADO:** se calcula en cada render.
+  - **Gris, FIJO:** datos que no cambian.
+- **Flechas continuas negras:** props que bajan.
+- **Flechas discontinuas naranjas:** callbacks que suben. Las flechas pasan por los pasillos
+  entre columnas, así que ninguna cruza una caja.
+
+### 2. Componente, estado, props y callbacks
+
+Leyenda de la columna «Estado propio»: **E** es estado, **D** es derivado y **F** es dato fijo.
+
+| Componente | Estado propio | Props que recibe | Callbacks que sube |
+|------------|---------------|------------------|--------------------|
+| **App** | **E** `favoriteIds` (`useFavorites`), **E** `searchText` (`useState`) · **D** `favoriteCount` = `favoriteIds.length`, **D** `debouncedText` (`useDebounce`, 300 ms), **D** `searchQuery` y `activeFilter` · **F** `movies` = `adaptMovies(apiMovies)`, **F** `featured` (la mejor valorada), **F** `cinema` (nombre, menú, contacto) | — (raíz) | — (recibe los de todos: `handleToggleFavorite`, `handleSearchChange`, `clearSearch`) |
+| `Toaster` | Interno de `react-hot-toast` (la cola de avisos) | `TOASTER_PROPS`: posición y estilos con tokens | — (muestra los `toast()` que lanza `App`) |
+| `Header` | — | `name`, `navLinks`, `favoriteCount` (**un número**) | — |
+| `Hero` | — | `movie` = `featured`, `children` armados en `App` | — (no conoce la búsqueda) |
+| ↳ `MovieSearch` | — (input controlado) | `value` = `searchText`, `onChange`, `onClear` | `onChange(text)` y `onClear()` → `App` |
+| ↳ `Button` «Ver cartelera» | — | `href="#cartelera"` | — (enlace) |
+| ↳ `Button` «Quitar filtro» + «Filtrando por…» | — | `onClick` = `clearSearch`; texto = **D** `activeFilter`. Solo aparece si hay filtro | `clearSearch()` → `App` |
+| `PremieresSection` | **E** `status`, `premieres`, `error` (`usePremieres`, que dentro tiene `useState` + `useEffect`) | — (ninguna) | — (es dueña de sus datos) |
+| ↳ `SkeletonCard` ×4 | — | — (decorativo, `aria-hidden`) | — |
+| ↳ alerta + `Button` «Reintentar» | — | mensaje = `error`, `onClick` = `retry` | `retry()` → `PremieresSection` (el hook) |
+| ↳ `PremiereCarousel` | **E** `width` (`useWindowSize`) · **D** `slidesPerView` = `columnsForWidth(width)` | `premieres`, ya adaptados | — |
+| ↳ ↳ `Swiper` › `SwiperSlide` ×6 | Interno de Swiper (diapositiva activa) | póster, título, `releaseDate` | — |
+| `MovieList` | **E** `width` (`useWindowSize`) · **D** `visibleMovies` (`useMemo` + `filterMovies`), **D** `columns` = `columnsForWidth(width)` | `movies`, `query`, `favoriteIds`, `onToggleFavorite`, `onClearSearch` | `onToggleFavorite(id)` y `onClearSearch()` → `App` (los reenvía) |
+| ↳ `EmptyState` | — | `title`, `children` = `Button` «Ver toda la cartelera». Solo si `visibleMovies` está vacío | `onClearSearch()` → `MovieList` → `App` |
+| ↳ `MovieCard` ×n | — | `movie`, `isFavorite` (**un booleano**), `onToggleFavorite` | `onToggleFavorite(id)` → `MovieList` → `App` |
+| `Footer` | — · **D** el año, calculado al dibujar | `name`, `contact` | — |
+
+Hay tres observaciones:
+- **Solo dos componentes guardan datos de la aplicación:** `App`, con favoritas y búsqueda, y
+  `PremieresSection`, con los estrenos.
+- **El otro estado propio es de presentación:** `width`, en `MovieList` y `PremiereCarousel`, es
+  el tamaño de la ventana para la maquetación.
+- **Todo lo demás se calcula o llega por props.**
+
+### 3. Por qué el contador de favoritas no puede vivir en `Header`
+
+1. **`Header` y `MovieCard` están en ramas distintas.** `Header` es hijo directo de `App`;
+   `MovieCard` está en `App → main → MovieList → MovieCard`. Ninguno es antepasado del otro.
+2. **Los datos solo bajan por props.** En React, un componente pasa datos a sus hijos, nunca a
+   sus hermanos ni a sus padres. Si el contador fuera estado de `Header`, solo `Header` y lo que
+   tiene dentro podrían leerlo.
+3. **`MovieCard` no podría avisar a `Header`.** El clic ocurre en la tarjeta, y la tarjeta solo
+   puede llamar a las funciones que le llegan por props. `Header` no está por encima de ella, así
+   que no puede pasarle ninguna función. No existe ningún camino de la tarjeta a la cabecera que
+   no pase por un ancestro común.
+4. **El ancestro común más cercano es `App`.** Es el primer componente que tiene a los dos debajo.
+   Ahí vive `favoriteIds`, en `useFavorites`:
+   - **Hacia `MovieCard`** baja `onToggleFavorite`, que sube el clic.
+   - **Hacia `Header`** baja el resultado.
+
+   Más arriba no hay nada, y más abajo no se cubre a los dos.
+5. **`Header` recibe el número, no la lista.** Solo muestra «3 favoritas», así que recibe
+   `favoriteCount` y no `favoriteIds`:
+   - **Hace lo mínimo:** no tiene que calcular nada ni conocer los `id` de las películas.
+   - **Tiene un contrato claro:** cualquiera que le pase un número puede reutilizarlo.
+   - **No guarda una copia del contador:** el número se deriva en `App` (`favoriteIds.length`)
+     cada vez que se dibuja, así que nunca puede contradecir a la lista.
+
+   Una prueba (`App.props.test.jsx`) registra las props reales de `Header` y comprueba que son
+   exactamente `name`, `navLinks` y `favoriteCount`.
+
+Además, aunque `Header` tuviera el estado, `MovieList` también lo necesita para pintar qué
+tarjetas están marcadas. Habría que duplicarlo y sincronizar las dos copias. Con el estado en
+`App` hay **una sola fuente de verdad**.
+
+### 4. Por qué los estrenos sí viven en `PremieresSection`
+
+La regla es la misma, aplicada al revés: **el estado sube hasta el ancestro común de quienes lo
+usan, y no más**.
+
+- **Quién los usa:** `status`, `premieres`, `error` y `retry` solo los usan `PremieresSection` y
+  sus hijos (los esqueletos, la alerta con «Reintentar» y el carrusel). Ningún otro componente
+  (`Header`, `Hero`, `MovieList`, `Footer`) necesita saber nada de los estrenos.
+- **El ancestro común** de quienes los usan es la propia `PremieresSection`. Ahí vive el hook.
+- **Subirlos a `App` no aportaría nada y costaría:**
+  - `App` se volvería a dibujar entera, con la cartelera incluida, en cada cambio de la petición;
+  - habría que pasar cuatro props que `App` no usa;
+  - `App` crecería con lógica que no le corresponde.
+- **Así la sección es autónoma:** `App` la monta sin props y se puede mover o quitar sin tocar
+  nada más.
+
+| Dato | Lo usan | Ancestro común más cercano | Dónde vive |
+|------|---------|----------------------------|------------|
+| `favoriteIds` | `Header` (contador) y `MovieCard` (botón) | `App` | `App` (`useFavorites`) |
+| `searchText` | `MovieSearch`, el botón del banner, `MovieList` y `EmptyState` | `App` | `App` (`useState`) |
+| Estrenos | `PremieresSection` y sus hijos | `PremieresSection` | `PremieresSection` (`usePremieres`) |
+| `width` (ventana) | Cada componente que maqueta por su cuenta | — (no se comparte) | En cada uno (`useWindowSize`): `MovieList`, `PremiereCarousel` |
+
+`width` se repite a propósito: no es un dato compartido que deba coincidir, sino una lectura del
+navegador que cada componente hace por su cuenta. Las dos lecturas valen lo mismo porque salen de
+la misma ventana.
+
+### 5. Hooks propios
+
+| Hook propio | Qué lógica extrae | Qué componentes lo usan |
+|-------------|-------------------|-------------------------|
+| `useDebounce(value, delayMs)` | Devolver un valor solo cuando deja de cambiar durante `delayMs`: temporizador con `setTimeout` y limpieza con `clearTimeout` en cada cambio y al desmontar | `App` (texto del buscador, 300 ms) y `useWindowSize` (tamaño de la ventana, 150 ms) |
+| `useWindowSize()` | Suscribirse a `resize` de `window` en un efecto, quitar el mismo listener en la limpieza y entregar `{ width, height }` con retardo (usa `useDebounce`) | `MovieList` (columnas) y `PremiereCarousel` (diapositivas por vista) |
+| `usePremieres(options)` | La petición de estrenos: estados `loading` / `success` / `error`, adaptar con `adaptMovies`, bandera de cancelación y `retry` | `PremieresSection` |
+| `useFavorites()` | Las favoritas: estado con inicializador perezoso desde `localStorage`, guardado con `useEffect`, `toggleFavorite` puro, `isFavorite` y `favoriteCount` derivado | `App` |
+
+Todos empiezan por `use`, viven en `src/hooks/`, llaman a otros hooks solo en su nivel superior y
+tienen sus propias pruebas.
+
+### Comprobación
+
+| Comando | Resultado |
+|---------|-----------|
+| `npm test` | 18 archivos, 104 pruebas superadas, las mismas que en el paso 10: este paso no cambió código |
+
+| Evidencia | Explicación |
+|-----------|-------------|
+| [31_paso11_arbol_componentes.svg](../../Evidencias_lab11/31_paso11_arbol_componentes.svg) | Diagrama del árbol en formato vectorial |
+| [31_paso11_arbol_componentes.png](../../Evidencias_lab11/31_paso11_arbol_componentes.png) | El mismo diagrama en PNG a doble resolución (2480x3080), convertido desde el SVG con Playwright |
+| [32_paso11_tests.txt](../../Evidencias_lab11/32_paso11_tests.txt) | Salida detallada de `npm test` |
+
+El SVG se generó con un pequeño script de Python fuera del repositorio. La primera versión tenía
+flechas de callbacks que atravesaban cajas (`retry()` cruzaba `SkeletonCard`, y
+`onToggleFavorite` cruzaba `EmptyState`). Se rehízo llevando todas las flechas por los pasillos
+entre columnas.
