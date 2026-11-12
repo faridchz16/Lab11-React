@@ -1284,3 +1284,157 @@ CHECK texto=♥ 3 favoritas aria-live=polite marcadas=3
 | `npm test` | 18 archivos, 100 pruebas superadas (86 anteriores + 14 nuevas) |
 | `npm run lint` | Sin errores ni avisos |
 | `npm run build` | Correcto: 94 módulos; JS 350.60 kB (109.55 kB gzip), CSS 27.91 kB |
+
+## Paso 10: Botón del banner que limpia el filtro, con buscador y listado sincronizados
+
+### Qué se añadió
+
+En la zona de acciones del banner, junto a «Ver cartelera»:
+- **un botón «Quitar filtro»** (`Button` del Lab 10, variante `secondary`), que solo aparece
+  mientras la cartelera está filtrada;
+- **una línea de estado** «Filtrando por «faro»», con `aria-live="polite"`.
+
+### Cómo se comunican los tres hermanos a través de `App`
+
+```
+                                   App
+          searchText (estado) ── useDebounce ──▶ searchQuery ──▶ activeFilter
+          handleSearchChange(text) → setSearchText(text)
+          clearSearch()            → setSearchText('')      ◀── la ÚNICA forma de limpiar
+                │                         │                              │
+   value, onChange, onClear     children ya armados            query, onClearSearch
+                │                         │                              │
+                ▼                         ▼                              ▼
+          MovieSearch                   Hero                        MovieList
+    input controlado              «Ver cartelera»                filtra las tarjetas
+    botón «Limpiar» ─┐        «Quitar filtro» ─┐            «Ver toda la cartelera» ─┐
+                     │        «Filtrando por…» │            (dentro de EmptyState)   │
+                     └──────── clearSearch() ──┴───────────── clearSearch() ─────────┘
+                                         │
+                                         ▼
+                       App: setSearchText('') → nuevo render de los tres
+```
+
+- **`MovieSearch`**, **`Hero`** (con su botón) y **`MovieList`** son hermanos: ninguno es padre
+  de otro. Ninguno puede leer ni cambiar el estado de los demás.
+- **El texto vive en `App`**, su ancestro común. Cada uno recibe lo que necesita: el buscador, el
+  valor y las funciones; la cartelera, la consulta ya aplicada; el banner, los hijos ya armados.
+- **Los tres caminos para limpiar llaman a la misma función**, `clearSearch`, que hace una sola
+  cosa: `setSearchText('')`. Tras ese cambio, React vuelve a dibujar `App` y los tres hermanos
+  reciben a la vez el estado nuevo.
+
+### Por qué ninguno guarda su propia copia del texto
+
+Si cada hermano tuviera su `useState` con el texto, habría **tres fuentes de verdad** y habría que
+mantenerlas sincronizadas a mano:
+
+- **Si el texto viviera en `MovieSearch`,** el botón del banner y el del estado vacío no podrían
+  vaciarlo: no se puede cambiar el estado de otro componente. Habría que añadir efectos que
+  copiaran el valor de un lado a otro, con renders de más y momentos en que no coinciden.
+- **Si `MovieList` tuviera su copia,** podría mostrar 1 película mientras el buscador ya está
+  vacío.
+- **Si el banner guardara «hay filtro» en un estado propio,** podría seguir enseñando «Quitar
+  filtro» con la cartelera completa.
+
+Con **una sola fuente** (`searchText` en `App`), lo demás se **calcula**:
+- `searchQuery`, el texto tras el retardo;
+- `activeFilter = searchQuery.trim()`, que decide si se ven el botón y la línea de estado;
+- la lista filtrada, que calcula `MovieList`.
+
+Nada se guarda dos veces, así que no hay nada que desincronizar. `MovieSearch` es un **input
+controlado**: muestra `value` y avisa con `onChange`, así que al vaciarse `searchText` el campo se
+vacía solo.
+
+### El código explicado
+
+`frontend/src/App.jsx`:
+
+```jsx
+const searchQuery = searchText === '' ? '' : debouncedText    // 1
+const activeFilter = searchQuery.trim()                       // 2
+
+function clearSearch() {                                      // 3
+  setSearchText('')
+}
+
+<Hero movie={featured}>                                       {/* 4 */}
+  <MovieSearch value={searchText} onChange={handleSearchChange} onClear={clearSearch} />
+  <div className="cluster">
+    <Button href="#cartelera">Ver cartelera</Button>
+    {activeFilter && (                                        // 5
+      <Button variant="secondary" onClick={clearSearch}>Quitar filtro</Button>
+    )}
+    <p className="text-sm text-muted" aria-live="polite">     {/* 6 */}
+      {activeFilter && `Filtrando por «${activeFilter}»`}
+    </p>
+  </div>
+</Hero>
+
+<MovieList … query={searchQuery} onClearSearch={clearSearch} />
+```
+
+1. **Vaciar no espera el retardo** (desde el Lab 10): si `searchText` es `''`, la consulta es `''`
+   en ese mismo render. Por eso, al pulsar «Quitar filtro», las 8 películas vuelven **al
+   instante**, sin esperar los 300 ms de `useDebounce`.
+2. **`activeFilter` se deriva** de la consulta que la cartelera está aplicando, no del texto que
+   se escribe. Así, «Filtrando por…» describe siempre lo que se ve. Mientras se escribe (antes de
+   los 300 ms) el banner no dice nada todavía; lo comprueba una prueba.
+3. **`clearSearch`**, la misma función para los tres caminos.
+4. **Patrón `children` del Lab 10:** `App` arma el contenido de las acciones y se lo pasa a `Hero`.
+   `Hero` solo hace `{children}`: no conoce el texto, ni el botón, ni `clearSearch`, y no cambió.
+5. **El botón aparece solo con un filtro activo.** Su `onClick` es `clearSearch`, la misma
+   función, no una copia.
+6. **La línea de estado está siempre en el DOM**, vacía si no hay filtro. Una región
+   `aria-live` tiene que existir **antes** del cambio para que el lector de pantalla lo anuncie:
+   si se creara junto con el texto, muchos lectores no lo leerían. Va dentro de la fila de
+   acciones, porque como hijo directo del banner, que usa `gap` en columna, un párrafo vacío
+   habría añadido 12 px de alto. Se midió: el banner mide lo mismo que antes del cambio
+   (480 px a 1440, 861,5 px a 390).
+
+### Verificación de la sincronización
+
+| Comprobación | Cómo | Resultado |
+|--------------|------|-----------|
+| Al pulsar «Quitar filtro», el buscador queda vacío, vuelven las 8 películas y el botón desaparece | Prueba de `App` y script en el navegador | Correcto. En el navegador, **50 ms** después del clic (menos que los 300 ms del retardo): `input="" peliculas=8 boton=false` |
+| Búsqueda sin resultados limpiada desde el banner | Prueba de `App` con `xyz` | Desaparece el estado vacío y vuelven las 8 |
+| «Limpiar» del buscador sigue funcionando | Prueba existente `keeps favorites while the list is being filtered` | Correcto |
+| «Ver toda la cartelera» del estado vacío sigue funcionando | Prueba existente `shows the empty state and recovers the list from its button` | Correcto |
+| **Los tres usan la misma función** | `App.props.test.jsx` registra las props reales: `onClear` de `MovieSearch`, `onClearSearch` de `MovieList` y `onClick` del botón «Quitar filtro», del mismo render | Son **la misma referencia** (`toBe`) |
+
+La última prueba se verificó a la inversa: al cambiar el `onClick` del banner por una copia
+(`() => setSearchText('')`), que se comporta igual, la prueba **falla**. Al restaurar
+`clearSearch`, vuelve a pasar. No basta con que el comportamiento coincida: tiene que ser la misma
+función.
+
+### Pruebas
+
+| Archivo | Pruebas nuevas |
+|---------|----------------|
+| `App.test.jsx` (+3) | Escribir «faro» → la cartelera filtra a 1 → el banner muestra «Filtrando por «faro»» (con `aria-live="polite"`) y el botón → «Quitar filtro» → input vacío, «8 películas en cartelera», sin botón, sin línea de estado y sin el «Limpiar» del buscador. Búsqueda `xyz` sin resultados limpiada desde el banner. La línea de estado aparece solo cuando el filtro se aplica, no en cada tecla |
+| `App.props.test.jsx` (+1) | Los tres caminos reciben la misma función `clearSearch` |
+
+### Evidencias
+
+| Evidencia | Explicación |
+|-----------|-------------|
+| [28_paso10_filtro_activo.png](../../Evidencias_lab11/28_paso10_filtro_activo.png) | Página completa con «faro» escrito: el buscador con `faro` y su «Limpiar»; en el banner, «Ver cartelera», **«Quitar filtro»** y «Filtrando por «faro»»; la cartelera, con «1 de 8 películas para «faro»» y solo *El último faro* |
+| [29_paso10_filtro_limpio.png](../../Evidencias_lab11/29_paso10_filtro_limpio.png) | Tras pulsar «Quitar filtro»: el buscador vacío (vuelve el texto de ejemplo), en el banner solo «Ver cartelera», y la cartelera con «8 películas en cartelera» y las 8 tarjetas |
+| [30_paso10_tests.txt](../../Evidencias_lab11/30_paso10_tests.txt) | Salida detallada de las pruebas: 18 archivos y 104 pruebas superadas |
+
+Estado leído del DOM por el script, antes y 50 ms después del clic:
+
+```
+CHECK input="faro" peliculas=1 boton=true  estado="Filtrando por «faro»"
+CHECK input=""     peliculas=8 boton=false estado=""
+```
+
+![Filtro activo](../../Evidencias_lab11/28_paso10_filtro_activo.png)
+![Filtro limpio](../../Evidencias_lab11/29_paso10_filtro_limpio.png)
+
+### Resultados
+
+| Comando | Resultado |
+|---------|-----------|
+| `npm test` | 18 archivos, 104 pruebas superadas (100 anteriores + 4 nuevas) |
+| `npm run lint` | Sin errores ni avisos |
+| `npm run build` | Correcto: 94 módulos; JS 350.84 kB (109.63 kB gzip) |

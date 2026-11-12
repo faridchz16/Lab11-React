@@ -118,3 +118,53 @@ describe('App search', () => {
     expect(favoriteButton('Ecos de Marte')).toHaveTextContent('En favoritas')
   })
 })
+
+describe('App banner "Quitar filtro"', () => {
+  function banner() {
+    return within(screen.getByRole('region', { name: 'Ecos de Marte' }))
+  }
+
+  it('shows the active filter and clears search box and billboard from the banner', async () => {
+    render(<App />)
+    expect(banner().queryByRole('button', { name: 'Quitar filtro' })).not.toBeInTheDocument()
+
+    await userEvent.type(screen.getByRole('searchbox'), 'faro')
+    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(1))
+
+    expect(banner().getByText('Filtrando por «faro»')).toHaveAttribute('aria-live', 'polite')
+    const clearButton = banner().getByRole('button', { name: 'Quitar filtro' })
+
+    await userEvent.click(clearButton)
+
+    // All three views follow the same state at once, without waiting for the debounce.
+    expect(screen.getByRole('searchbox')).toHaveValue('')
+    expect(screen.getAllByRole('article')).toHaveLength(8)
+    expect(screen.getByText('8 películas en cartelera')).toBeInTheDocument()
+    expect(banner().queryByRole('button', { name: 'Quitar filtro' })).not.toBeInTheDocument()
+    expect(banner().queryByText(/Filtrando por/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Limpiar' })).not.toBeInTheDocument()
+  })
+
+  it('clears a search without results from the banner', async () => {
+    render(<App />)
+    await userEvent.type(screen.getByRole('searchbox'), 'xyz')
+    expect(await screen.findByText('Ninguna película coincide con «xyz»')).toBeInTheDocument()
+    expect(banner().getByText('Filtrando por «xyz»')).toBeInTheDocument()
+
+    await userEvent.click(banner().getByRole('button', { name: 'Quitar filtro' }))
+
+    expect(screen.getByRole('searchbox')).toHaveValue('')
+    expect(screen.queryByText('Ninguna película coincide con «xyz»')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('article')).toHaveLength(8)
+  })
+
+  it('shows the filter only once it is applied, not on every keystroke', async () => {
+    render(<App />)
+    await userEvent.type(screen.getByRole('searchbox'), 'fa')
+
+    // The box already says "fa", but the billboard has not filtered yet: no banner state.
+    expect(banner().queryByText(/Filtrando por/)).not.toBeInTheDocument()
+
+    expect(await banner().findByText('Filtrando por «fa»')).toBeInTheDocument()
+  })
+})

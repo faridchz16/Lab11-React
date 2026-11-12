@@ -34,7 +34,11 @@ function App() {
   const debouncedText = useDebounce(searchText, SEARCH_DELAY_MS)
   // Emptying the box is not a typing burst: the full list comes back at once.
   const searchQuery = searchText === '' ? '' : debouncedText
+  // Derived, not state: the filter the billboard is applying right now.
+  const activeFilter = searchQuery.trim()
 
+  // The single way to clear the search. The three places that offer it (the search box,
+  // the banner and the empty state) all receive this same function.
   function clearSearch() {
     setSearchText('')
   }
@@ -76,7 +80,19 @@ function App() {
             onChange={handleSearchChange}
             onClear={clearSearch}
           />
-          <Button href="#cartelera">Ver cartelera</Button>
+          {/* Hero only renders these children: it never sees searchText. */}
+          <div className="cluster">
+            <Button href="#cartelera">Ver cartelera</Button>
+            {activeFilter && (
+              <Button variant="secondary" onClick={clearSearch}>
+                Quitar filtro
+              </Button>
+            )}
+            {/* Always in the DOM, so screen readers notice when the text appears or changes. */}
+            <p className="text-sm text-muted" aria-live="polite">
+              {activeFilter && `Filtrando por «${activeFilter}»`}
+            </p>
+          </div>
         </Hero>
         {/* Owns its own data (usePremieres): App keeps no premieres state. */}
         <PremieresSection />
