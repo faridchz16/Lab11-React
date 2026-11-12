@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import { apiMovies, cinema } from './data/movies.js'
 import Button from './components/Button/Button.jsx'
@@ -9,9 +9,9 @@ import MovieList from './components/MovieList/MovieList.jsx'
 import MovieSearch from './components/MovieSearch/MovieSearch.jsx'
 import PremieresSection from './components/PremieresSection/PremieresSection.jsx'
 import { useDebounce } from './hooks/useDebounce.js'
+import { useFavorites } from './hooks/useFavorites.js'
 import { adaptMovies } from './utils/adaptMovie.js'
 import { debugLog } from './utils/debugLog.js'
-import { loadFavoriteIds, saveFavoriteIds } from './utils/favoritesStorage.js'
 import { TOASTER_PROPS } from './utils/toastOptions.js'
 
 // Pause after the last keystroke before the search is applied.
@@ -27,8 +27,9 @@ const featured = movies.reduce((best, movie) =>
 
 // Root component of the movie billboard app.
 function App() {
-  // Lazy initializer: localStorage is read once, not on every render.
-  const [favoriteIds, setFavoriteIds] = useState(loadFavoriteIds)
+  // Favorites live here because App is the closest common ancestor of Header (count)
+  // and MovieList (buttons). The hook holds the logic; App holds the state.
+  const { favoriteIds, favoriteCount, toggleFavorite, isFavorite } = useFavorites()
   const [searchText, setSearchText] = useState('')
   const debouncedText = useDebounce(searchText, SEARCH_DELAY_MS)
   // Emptying the box is not a typing burst: the full list comes back at once.
@@ -43,22 +44,14 @@ function App() {
     setSearchText(text)
   }
 
-  useEffect(() => {
-    saveFavoriteIds(favoriteIds)
-  }, [favoriteIds])
-
-  // Adds the movie when it is missing from the list and removes it otherwise,
-  // then tells the user. App owns the state, so App decides how the notice looks.
-  function toggleFavorite(movieId) {
-    // Read before updating: the updater below must stay pure (no side effects).
-    const wasFavorite = favoriteIds.includes(movieId)
+  // Toggles the favorite, then tells the user. App owns the state, so App decides how
+  // the notice looks; MovieCard only reports the click.
+  function handleToggleFavorite(movieId) {
+    // Read before updating: the state updater inside the hook stays pure (no side effects).
+    const wasFavorite = isFavorite(movieId)
     const title = movies.find((movie) => movie.id === movieId)?.title ?? 'La película'
 
-    setFavoriteIds((currentIds) =>
-      currentIds.includes(movieId)
-        ? currentIds.filter((id) => id !== movieId)
-        : [...currentIds, movieId],
-    )
+    toggleFavorite(movieId)
 
     // Same id per movie: toggling it again replaces its notice instead of stacking a new one.
     const toastId = `favorite-${movieId}`
@@ -74,7 +67,7 @@ function App() {
       <Header
         name={cinema.name}
         navLinks={cinema.navLinks}
-        favoriteCount={favoriteIds.length}
+        favoriteCount={favoriteCount}
       />
       <main>
         <Hero movie={featured}>
@@ -91,7 +84,7 @@ function App() {
           movies={movies}
           query={searchQuery}
           favoriteIds={favoriteIds}
-          onToggleFavorite={toggleFavorite}
+          onToggleFavorite={handleToggleFavorite}
           onClearSearch={clearSearch}
         />
       </main>

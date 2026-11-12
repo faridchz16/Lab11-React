@@ -1,4 +1,7 @@
 .premieres {
+  /* New block formatting context: the skeletons' bottom margin stays inside the section
+     instead of collapsing through it, so loading and loaded take the same height. */
+  display: flow-root;
   padding-block-end: 0;
   /* Keep the title visible below the sticky header when jumping to #estrenos. */
   scroll-margin-block-start: var(--space-8);

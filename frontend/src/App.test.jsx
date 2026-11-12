@@ -23,6 +23,20 @@ describe('App favorites', () => {
     expect(banner.getByText(/0 favoritas/)).toBeInTheDocument()
   })
 
+  it('shows "2 favoritas" in the header after marking two movies', async () => {
+    render(<App />)
+    const counter = within(screen.getByRole('banner')).getByText(/favoritas?$/)
+
+    await userEvent.click(favoriteButton('El último faro'))
+    expect(counter).toHaveTextContent('1 favorita')
+
+    await userEvent.click(favoriteButton('Frontera helada'))
+    expect(counter).toHaveTextContent('2 favoritas')
+    expect(counter).toHaveAttribute('aria-live', 'polite')
+    expect(favoriteButton('El último faro')).toHaveTextContent('En favoritas')
+    expect(favoriteButton('Frontera helada')).toHaveTextContent('En favoritas')
+  })
+
   it('shows a notice with the title when a favorite is added and when it is removed', async () => {
     render(<App />)
 

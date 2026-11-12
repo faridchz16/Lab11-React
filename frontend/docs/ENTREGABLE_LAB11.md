@@ -1064,3 +1064,223 @@ Ambos se vieron solo en las capturas: las pruebas de jsdom no calculan la maquet
 | Evidencia | Explicación |
 |-----------|-------------|
 | [24_paso8_tests.txt](../../Evidencias_lab11/24_paso8_tests.txt) | Salida detallada de las pruebas: 86 superadas |
+
+## Paso 9: Favoritas en el ancestro común con `useFavorites` y contador en la cabecera
+
+### Qué es elevar el estado
+
+Cuando dos componentes necesitan el mismo dato, ninguno de los dos puede guardarlo: un hermano no
+puede leer el estado del otro. La solución es **elevar el estado** (*lifting state up*): se guarda
+en el **ancestro común más cercano** y se reparte hacia abajo por props. Los hijos no lo cambian
+directamente; avisan al dueño con una función que reciben, y el dueño lo actualiza.
+
+Las favoritas las necesitan dos ramas distintas:
+- **`Header`**, para mostrar cuántas hay;
+- **`MovieCard`** (dentro de `MovieList`), para pintar cada botón y avisar del clic.
+
+Su ancestro común más cercano es **`App`**, y ahí viven.
+
+### Cómo estaba (comprobación previa)
+
+Antes de cambiar nada se revisó `App.jsx`. `favoriteIds` ya vivía en `App` desde el laboratorio 10,
+y `Header` ya recibía solo `favoriteCount={favoriteIds.length}`, un número calculado al pasar las
+props, no guardado en estado. El paso no tuvo que mover el estado. Lo que hizo fue:
+- **sacar la lógica a un hook propio**, para dejar `App` limpio;
+- **hacer accesible el contador**;
+- **demostrar con pruebas** que `Header` no recibe la lista.
+
+### Diagrama
+
+```
+                         App
+        useFavorites() → favoriteIds, favoriteCount, toggleFavorite, isFavorite
+        handleToggleFavorite(id) → toggleFavorite(id) + toast()
+              │                                   │
+   favoriteCount (número)          favoriteIds, onToggleFavorite
+              │                                   │
+              ▼                                   ▼
+           Header                             MovieList
+   «♥ 3 favoritas» (aria-live)                    │
+                                   isFavorite (booleano), onToggleFavorite
+                                                  │
+                                                  ▼
+                                      MovieCard (×8) ── clic ──▶ onToggleFavorite(id)
+                                                                         │
+                                       ◀──────── sube hasta App ─────────┘
+```
+
+Cada componente recibe **lo mínimo** que necesita:
+
+| Componente | Recibe | No recibe |
+|------------|--------|-----------|
+| `Header` | `favoriteCount`, un número | La lista: solo la mostraría como un número |
+| `MovieList` | `favoriteIds` y `onToggleFavorite` | — (necesita la lista para saber qué tarjetas están marcadas) |
+| `MovieCard` | `isFavorite`, un booleano, y `onToggleFavorite` | La lista: solo le importa su propia película |
+
+### Por qué el contador se deriva y no se guarda
+
+`favoriteCount` es siempre `favoriteIds.length`. Si se guardara en otro `useState`:
+
+- **Habría dos fuentes de verdad.** Cada cambio en la lista obligaría a acordarse de actualizar
+  también el contador. Basta un olvido (o un error en un caso raro, como dos clics seguidos) para
+  que la cabecera diga «3 favoritas» con 2 tarjetas marcadas.
+- **Habría un render extra**, para actualizar un número que ya se sabe.
+- **No aportaría nada:** calcular `.length` es instantáneo.
+
+Por eso `useFavorites` lo devuelve calculado en cada render. Nunca puede desincronizarse, y la
+prueba `derives the count from the list` lo comprueba tras añadir y quitar.
+
+### El código de `useFavorites`
+
+`frontend/src/hooks/useFavorites.js`:
+
+```js
+export function useFavorites() {
+  const [favoriteIds, setFavoriteIds] = useState(loadFavoriteIds)       // 1
+
+  useEffect(() => {                                                     // 2
+    saveFavoriteIds(favoriteIds)
+  }, [favoriteIds])
+
+  function toggleFavorite(movieId) {                                    // 3
+    setFavoriteIds((currentIds) =>
+      currentIds.includes(movieId)
+        ? currentIds.filter((id) => id !== movieId)
+        : [...currentIds, movieId],
+    )
+  }
+
+  function isFavorite(movieId) {                                        // 4
+    return favoriteIds.includes(movieId)
+  }
+
+  return {
+    favoriteIds,
+    favoriteCount: favoriteIds.length,                                  // 5
+    toggleFavorite,
+    isFavorite,
+  }
+}
+```
+
+1. **Inicializador perezoso:** se pasa la función `loadFavoriteIds`, no su resultado. React la
+   llama solo en el primer render, así que `localStorage` se lee una vez y no en cada render.
+   `loadFavoriteIds` (Lab 10) devuelve `[]` si el contenido está dañado o el navegador bloquea el
+   almacenamiento.
+2. **Persistencia:** escribir en `localStorage` es un efecto secundario, así que va en
+   `useEffect` y se ejecuta después de cada cambio de la lista.
+3. **`toggleFavorite`** usa la forma funcional de `setFavoriteIds`: calcula la lista nueva a partir
+   de la **actual**, no de la del último render. Así, dos llamadas seguidas en el mismo lote
+   (añadir y quitar) dan el resultado correcto. Es una función pura, sin efectos secundarios.
+4. **`isFavorite`** consulta la lista del render actual.
+5. **El contador se deriva** de la lista, no se guarda.
+
+**El hook no es un componente ni guarda el estado «aparte».** Cada componente que lo llama tiene
+su propio estado. Lo llama `App`, así que **el estado sigue viviendo en `App`**, el ancestro
+común. El hook solo saca la lógica del cuerpo de `App`. Cumple las reglas de los hooks:
+`useState` y `useEffect` en el nivel superior y siempre en el mismo orden. `npm run lint` no da
+avisos.
+
+La guía pide devolver `{ favoriteIds, favoriteCount, toggleFavorite }`. Se devuelve además
+`isFavorite`, porque `App` lo necesita para el aviso (siguiente apartado).
+
+### `App` después del cambio
+
+```js
+const { favoriteIds, favoriteCount, toggleFavorite, isFavorite } = useFavorites()
+
+function handleToggleFavorite(movieId) {
+  const wasFavorite = isFavorite(movieId)     // antes de actualizar
+  const title = movies.find((movie) => movie.id === movieId)?.title ?? 'La película'
+
+  toggleFavorite(movieId)
+
+  // aviso del paso 4: quitada (info) o añadida (éxito)
+}
+```
+
+- **`App` sigue lanzando el aviso del paso 4.** El hook no sabe nada de `react-hot-toast`: cambia
+  el estado y nada más. `App` comprueba si la película **ya era** favorita antes de llamar a
+  `toggleFavorite`. La actualización del estado sigue siendo pura y el aviso queda fuera de ella.
+- **Lo que sale de `App.jsx`:**
+  - el `useState(loadFavoriteIds)`, el `useEffect` de guardado y el cálculo del contador;
+  - las importaciones de `useEffect` y de `favoritesStorage`.
+
+### Contador accesible en `Header`
+
+```jsx
+const favoriteLabel = `${favoriteCount} ${favoriteCount === 1 ? 'favorita' : 'favoritas'}`
+// …
+<p className="header__favorites" aria-live="polite" aria-atomic="true">
+  <span aria-hidden="true">♥ </span>
+  {favoriteLabel}
+</p>
+```
+
+- **`aria-live="polite"`:** cuando cambia el texto, el lector de pantalla lo anuncia en cuanto el
+  usuario hace una pausa, sin interrumpir lo que esté leyendo.
+- **`aria-atomic="true"`:** anuncia el texto completo, «3 favoritas», y no solo el número que cambió.
+- **El corazón es decorativo** (`aria-hidden`), así que no se lee «corazón negro».
+- **Singular y plural:** «1 favorita», «0 favoritas», «2 favoritas».
+
+### Pruebas
+
+| Archivo | Pruebas |
+|---------|---------|
+| `useFavorites.test.js` (7, nuevo) | Empieza vacío; añade y quita con la misma función; `isFavorite`; **contador derivado** (siempre igual a `favoriteIds.length` tras añadir 3 y quitar 1); dos `toggle` seguidos en el mismo lote dan `[]` (actualizador puro); **persistencia**: cada cambio se guarda (`[4]`, `[4,7]`) y al montar se recupera lo guardado; `localStorage` se lee una sola vez |
+| `Header.test.jsx` (5, nuevo) | «0 favoritas», «1 favorita», «2 favoritas»; `aria-live="polite"` y `aria-atomic="true"`; el texto cambia cuando cambia la prop |
+| `App.props.test.jsx` (1, nuevo) | Sustituye `Header` por un espía que **registra las props reales** que le pasa `App` y dibuja el `Header` de verdad. Tras marcar 2 películas, las props son exactamente `name`, `navLinks` y `favoriteCount`; no hay `favoriteIds`, y `favoriteCount` es un número que pasó por 0, 1 y 2. Va en un archivo aparte porque `vi.mock` afecta a todo el archivo |
+| `App.test.jsx` (+1) | Al marcar 2 películas, la cabecera muestra «1 favorita» y luego «2 favoritas», y las dos tarjetas quedan marcadas |
+
+### Mejora del esqueleto encontrada en las capturas
+
+Al tomar la captura 26, los puntos del carrusel asomaban bajo la cabecera. El carrusel terminó de
+cargar **después** de desplazar la página y la empujó hacia abajo. Al medir la altura de la
+sección `#estrenos` se vio que el esqueleto del paso 8 era **42 px más bajo** que el carrusel. Había
+tres causas:
+
+1. **El margen inferior de los esqueletos colapsaba** a través de la sección y quedaba fuera de
+   ella (32 px). Se corrigió con `display: flow-root` en `.premieres`.
+2. **Las líneas grises eran más bajas que el texto real.** Ahora miden lo mismo que el título
+   (`--font-size-lg` × `--line-height-lg`) y que la fecha. La barra se dibuja solo en la caja de
+   contenido (`background-clip: content-box`), así que sigue viéndose fina.
+3. **La fecha usa `.text-sm`**, que cambia el tamaño pero conserva la altura de línea de `body`
+   (1,6). La línea del esqueleto usa la misma.
+
+| Ancho | Antes: cargando → con datos | Después |
+|-------|-----------------------------|---------|
+| 1440 px | 622,0 → 664,4 px | 664,4 → 664,4 px |
+| 1024 px | — | 725,4 → 725,4 px |
+| 768 px | — | 787,4 → 787,4 px |
+| 390 px | 748,0 → 790,4 px | 790,4 → 790,4 px |
+
+Ahora la página **no se mueve** cuando llegan los estrenos. Como cambió el aspecto del esqueleto,
+se repitieron también las capturas
+[19_paso8_cargando.png](../../Evidencias_lab11/19_paso8_cargando.png) y
+[22_paso8_reintentar.png](../../Evidencias_lab11/22_paso8_reintentar.png) del paso 8.
+
+### Evidencias
+
+| Evidencia | Explicación |
+|-----------|-------------|
+| [25_paso9_contador_0.png](../../Evidencias_lab11/25_paso9_contador_0.png) | Cabecera con «♥ 0 favoritas» y las tarjetas de la cartelera sin marcar |
+| [26_paso9_contador_3.png](../../Evidencias_lab11/26_paso9_contador_3.png) | Tras marcar *El último faro*, *La ciudad sin sombras* y *Noche de cristal*: la cabecera dice «♥ 3 favoritas» y las tres tarjetas tienen el borde rojo y el botón «En favoritas». *Ecos de Marte*, sin marcar, queda en medio para comparar. Se esperó a que se fueran los avisos para que no taparan las tarjetas |
+| [27_paso9_tests.txt](../../Evidencias_lab11/27_paso9_tests.txt) | Salida detallada de las pruebas: 18 archivos y 100 pruebas superadas |
+
+En las dos capturas, el script leyó el contador del DOM:
+
+```
+CHECK texto=♥ 0 favoritas aria-live=polite marcadas=0
+CHECK texto=♥ 3 favoritas aria-live=polite marcadas=3
+```
+
+![Contador en 0](../../Evidencias_lab11/25_paso9_contador_0.png)
+![Contador en 3](../../Evidencias_lab11/26_paso9_contador_3.png)
+
+### Resultados
+
+| Comando | Resultado |
+|---------|-----------|
+| `npm test` | 18 archivos, 100 pruebas superadas (86 anteriores + 14 nuevas) |
+| `npm run lint` | Sin errores ni avisos |
+| `npm run build` | Correcto: 94 módulos; JS 350.60 kB (109.55 kB gzip), CSS 27.91 kB |
