@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f2a44"/>
+      <stop offset="1" stop-color="#02060d"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <circle cx="90" cy="110" r="7" fill="#fff7c2"/>
+  <circle cx="150" cy="80" r="9" fill="#fff7c2"/>
+  <circle cx="210" cy="120" r="7" fill="#fff7c2"/>
+  <circle cx="135" cy="170" r="6" fill="#fff7c2"/>
+  <circle cx="165" cy="175" r="6" fill="#fff7c2"/>
+  <rect x="60" y="225" width="180" height="40" rx="10" fill="#c9d6e3"/>
+  <rect x="80" y="235" width="25" height="18" fill="#0f2a44"/>
+  <rect x="125" y="235" width="25" height="18" fill="#0f2a44"/>
+  <rect x="170" y="235" width="25" height="18" fill="#0f2a44"/>
+  <g fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="middle">
+    <text x="150" y="332">El último tren</text>
+    <text x="150" y="372">a Orión</text>
+  </g>
+</svg>

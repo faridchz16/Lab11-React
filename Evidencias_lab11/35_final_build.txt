@@ -1,0 +1,19 @@
+# Compilación final del laboratorio 11 (rama lab11)
+# Comando: cd frontend && npm run build
+
+$ npm run build
+
+> frontend@0.0.0 build
+> vite build
+
+vite v8.3.6 building client environment for production...
+transforming...
+✓ 94 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.48 kB │ gzip:   0.30 kB
+dist/assets/index-DAQowPdz.css   27.91 kB │ gzip:   5.14 kB
+dist/assets/index-L82gYYjU.js   350.84 kB │ gzip: 109.63 kB
+
+✓ built in 180ms
+(código de salida: 0)

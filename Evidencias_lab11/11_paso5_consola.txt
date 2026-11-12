@@ -1,0 +1,11 @@
+# Console of http://localhost:5173/ (1440x900)
+[debug] [vite] connecting...
+[debug] [vite] connected.
+[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[log] [search] filtered "": 8 movies
+[log] [search] filtered "": 8 movies
+[log] [search] keystroke: "f"
+[log] [search] keystroke: "fa"
+[log] [search] keystroke: "far"
+[log] [search] keystroke: "faro"
+[log] [search] filtered "faro": 1 movies

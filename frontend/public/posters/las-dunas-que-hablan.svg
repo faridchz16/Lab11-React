@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2b45a"/>
+      <stop offset="1" stop-color="#7a3b12"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <circle cx="220" cy="100" r="35" fill="#fff1c9"/>
+  <path d="M0,260 Q80,170 160,240 T300,220 L300,290 L0,290 Z" fill="#c9762e"/>
+  <path d="M0,290 Q100,215 200,270 T300,260 L300,300 L0,300 Z" fill="#a35a20"/>
+  <g fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="middle">
+    <text x="150" y="332">Las dunas</text>
+    <text x="150" y="372">que hablan</text>
+  </g>
+</svg>

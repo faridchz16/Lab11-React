@@ -1,0 +1,47 @@
+# Salida de npm test (vitest run) con el informe detallado (--reporter=verbose), paso 3
+# Comando: cd frontend && npx vitest run --reporter=verbose
+
+
+ RUN  v5.1.0 E:/ClaudeCode/Lab11-React/frontend
+
+ ✓ src/utils/filterMovies.test.js > filterMovies > returns every movie for an empty or blank query 3ms
+ ✓ src/utils/filterMovies.test.js > filterMovies > ignores case and surrounding spaces 0ms
+ ✓ src/utils/filterMovies.test.js > filterMovies > ignores accents in both directions 0ms
+ ✓ src/utils/filterMovies.test.js > filterMovies > returns an empty list when nothing matches 0ms
+ ✓ src/utils/favoritesStorage.test.js > favoritesStorage > reads back what it saved 3ms
+ ✓ src/utils/favoritesStorage.test.js > favoritesStorage > returns an empty list when nothing was saved 0ms
+ ✓ src/utils/favoritesStorage.test.js > favoritesStorage > survives corrupt JSON 0ms
+ ✓ src/utils/favoritesStorage.test.js > favoritesStorage > ignores valid JSON of the wrong shape 0ms
+ ✓ src/utils/favoritesStorage.test.js > favoritesStorage > does not throw when the browser blocks storage 1ms
+ ✓ src/hooks/useDebouncedValue.test.js > useDebouncedValue > keeps the old value until the delay has passed 20ms
+ ✓ src/hooks/useDebouncedValue.test.js > useDebouncedValue > collapses a burst of changes into the last value 3ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > maps every API field to its app field 3ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > returns only the app model, without API names or extra fields 1ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > uses safe defaults when fields are missing 1ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > survives a missing movie 1ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > treats invalid values as missing 0ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > keeps the rating on the 0-10 scale and accepts numeric text 0ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > drops empty showtimes from the list 0ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovies > adapts the whole billboard keeping its 8 movies and values 2ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovies > returns an empty billboard when the response is not a list 0ms
+ ✓ src/components/Button/Button.test.jsx > Button > renders its children with the default variant and size 55ms
+ ✓ src/components/Button/Button.test.jsx > Button > changes its appearance through props alone 3ms
+ ✓ src/components/Button/Button.test.jsx > Button > defaults to type="button" so it never submits a form by accident 3ms
+ ✓ src/components/Button/Button.test.jsx > Button > renders a link when it receives href 3ms
+ ✓ src/components/MovieSearch/MovieSearch.test.jsx > MovieSearch > shows the value it receives 52ms
+ ✓ src/components/Button/Button.test.jsx > Button > forwards onClick and aria attributes to the element 57ms
+ ✓ src/components/MovieCard/MovieCard.test.jsx > MovieCard > reports the movie id to its parent and keeps no state of its own 119ms
+ ✓ src/components/MovieCard/MovieCard.test.jsx > MovieCard > shows the current state received from the parent 6ms
+ ✓ src/components/MovieSearch/MovieSearch.test.jsx > MovieSearch > reports every keystroke through onChange 83ms
+ ✓ src/components/MovieSearch/MovieSearch.test.jsx > MovieSearch > offers the clear button only when there is text 45ms
+ ✓ src/App.test.jsx > App favorites > adds and removes a favorite and updates the header counter 199ms
+ ✓ src/App.test.jsx > App favorites > saves favorites and restores them after a reload 75ms
+ ✓ src/App.test.jsx > App search > filters the billboard after the delay, not on each keystroke 395ms
+ ✓ src/App.test.jsx > App search > shows the empty state and recovers the list from its button 462ms
+ ✓ src/App.test.jsx > App search > keeps favorites while the list is being filtered 531ms
+
+ Test Files  8 passed (8)
+      Tests  35 passed (35)
+   Start at  12:09:47
+   Duration  3.44s (environment 63%, setup 17%, tests 15%, import 3%, transform 1%)
+

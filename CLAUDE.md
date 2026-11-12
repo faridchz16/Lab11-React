@@ -2,9 +2,9 @@
 
 ## Descripción del repositorio
 
-Este repositorio es **Lab10-React**, continuación del laboratorio 09
-(https://github.com/faridchz16/Lab09-React): conserva su historial completo y añade encima los
-componentes reutilizables, el estado y los eventos del laboratorio 10.
+Este repositorio es **Lab11-React**, continuación del laboratorio 10
+(https://github.com/jordanabad797-pixel/Lab10-React): conserva su historial completo y añade el
+**laboratorio 11: comunicación entre componentes, hooks propios y bibliotecas de interfaz**.
 
 Contenido:
 
@@ -14,9 +14,17 @@ Contenido:
 - **Laboratorio 09 – Frontend React** (`frontend/`): cartelera de cine construida con React + Vite.
 - **Laboratorio 10 – Componentes y eventos** (`frontend/`): `Button`, favoritas, buscador con
   retardo, estado vacío y persistencia en el navegador.
+- **Laboratorio 11 – Comunicación, hooks y bibliotecas** (`frontend/`): comunicación entre
+  componentes, hooks propios, avisos con `react-hot-toast` y carrusel con `swiper`.
 
 No modificar el backend Django (`config/`, `quiz/`, `agent/`, `quizctl.py`, `manage.py`,
 `schema.yml`, `requirements.txt`) ni la carpeta `.opencode/` salvo petición explícita.
+
+## Ramas
+
+- Todo el trabajo del laboratorio 11 va en la rama **`lab11`**. Al final se fusiona en `main`
+  con un Pull Request.
+- **Nunca hacer commit directamente en `main`.**
 
 ## Frontend
 
@@ -28,13 +36,39 @@ No modificar el backend Django (`config/`, `quiz/`, `agent/`, `quizctl.py`, `man
   - `npm run lint` — ESLint
   - `npm test` — pruebas con Vitest y Testing Library
 
+## Capturas de evidencia
+
+`scripts/capture.mjs` (en la raíz) toma capturas con Playwright, que no es dependencia del
+proyecto: se descarga con npx. Requiere `npm run dev` en marcha.
+
+```bash
+npx -y playwright@1.56.1 install chromium        # solo la primera vez
+npx -y -p playwright@1.56.1 node scripts/capture.mjs --full --out Evidencias_lab11/NN_x.png
+```
+
+Opciones: `--mobile` (390x844; por defecto 1440x900), `--full` o `--selector <css>`, acciones
+en orden (`--click`, `--type "<css>=texto"`, `--press`, `--wait <css>`, `--wait-text`,
+`--sleep <ms>`, `--eval <js>`), `--storage clave=valor` para `localStorage` y
+`--console archivo.txt` para guardar la consola. La lista completa está en la cabecera del script.
+
 ## Reglas
 
 - Componentes **funcionales** con nombre en **PascalCase**.
 - **Una carpeta por componente**: `src/components/Componente/Componente.jsx` + `Componente.css`.
 - Los componentes de presentación reciben datos y funciones por **props**. El estado compartido
   vive en `App`; un hijo nunca modifica el estado de otro, avisa al padre con la función recibida.
+- El estado **sube solo hasta el ancestro común** de los componentes que lo necesitan, no más.
 - Lo que se puede calcular a partir del estado o de las props **no se guarda en estado**.
-- Los hooks propios van en `src/hooks/` con el prefijo `use`.
+- Los hooks propios van en `src/hooks/` con el prefijo `use` y **respetan las reglas de los
+  hooks**: se llaman solo en el nivel superior de un componente o de otro hook, nunca dentro de
+  condiciones, bucles ni funciones anidadas.
+- Avisos emergentes con **`react-hot-toast`** y carrusel con **`swiper`**.
+- Los componentes de presentación **no saben cómo se muestra un aviso**: el `toast` lo lanza
+  quien tiene el estado (por ejemplo, `App`); el hijo solo avisa con su función de props.
+- En cada paso del laboratorio, toma con `scripts/capture.mjs` las capturas que pide la guía para
+  ese paso, guárdalas en `Evidencias_lab11/` con nombre numerado (`NN_descripcion.png`),
+  enlázalas en `frontend/docs/ENTREGABLE_LAB11.md` con su explicación y súbelas en el commit de
+  ese paso. Si un estado es difícil de ver (carga, error, aviso emergente), prepara una forma de
+  forzarlo solo para la captura, sin ensuciar el código de producción.
 - **Código y comentarios en inglés**; **explicaciones al usuario en español**.
 - **Un commit por tarea**, con el mensaje en español.

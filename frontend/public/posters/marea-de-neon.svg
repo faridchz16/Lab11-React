@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b1464"/>
+      <stop offset="1" stop-color="#05030f"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <path d="M30,200 Q75,150 120,200 T210,200 T300,200" fill="none" stroke="#ff4fd8" stroke-width="10" stroke-linecap="round"/>
+  <path d="M0,245 Q45,195 90,245 T180,245 T270,245" fill="none" stroke="#3ef2ff" stroke-width="10" stroke-linecap="round"/>
+  <g fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="middle">
+    <text x="150" y="332">Marea</text>
+    <text x="150" y="372">de neón</text>
+  </g>
+</svg>

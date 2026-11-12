@@ -1,0 +1,112 @@
+# Salida de npm test (vitest run) con el informe detallado (--reporter=verbose), paso 9
+# Comando: cd frontend && npx vitest run --reporter=verbose
+
+
+ RUN  v5.1.0 E:/ClaudeCode/Lab11-React/frontend
+
+ ✓ src/utils/favoritesStorage.test.js > favoritesStorage > reads back what it saved 5ms
+ ✓ src/utils/favoritesStorage.test.js > favoritesStorage > returns an empty list when nothing was saved 0ms
+ ✓ src/utils/favoritesStorage.test.js > favoritesStorage > survives corrupt JSON 0ms
+ ✓ src/utils/favoritesStorage.test.js > favoritesStorage > ignores valid JSON of the wrong shape 1ms
+ ✓ src/utils/favoritesStorage.test.js > favoritesStorage > does not throw when the browser blocks storage 2ms
+ ✓ src/utils/filterMovies.test.js > filterMovies > returns every movie for an empty or blank query 5ms
+ ✓ src/utils/filterMovies.test.js > filterMovies > ignores case and surrounding spaces 1ms
+ ✓ src/utils/filterMovies.test.js > filterMovies > ignores accents in both directions 1ms
+ ✓ src/utils/filterMovies.test.js > filterMovies > returns an empty list when nothing matches 0ms
+ ✓ src/hooks/useDebounce.test.js > useDebounce > returns the initial value at once 24ms
+ ✓ src/hooks/useDebounce.test.js > useDebounce > updates only after the delay has passed 5ms
+ ✓ src/hooks/useDebounce.test.js > useDebounce > turns a burst of changes into a single update with the last value 5ms
+ ✓ src/hooks/useDebounce.test.js > useDebounce > restarts the wait when the delay changes 3ms
+ ✓ src/hooks/useDebounce.test.js > useDebounce > clears the pending timer on unmount 4ms
+ ✓ src/hooks/useWindowSize.test.js > useWindowSize > returns the current window size at once 24ms
+ ✓ src/hooks/useWindowSize.test.js > useWindowSize > reports the new size only after resizing pauses 6ms
+ ✓ src/hooks/useWindowSize.test.js > useWindowSize > turns a drag of many resize events into one update with the last size 4ms
+ ✓ src/hooks/useWindowSize.test.js > useWindowSize > removes the same resize listener it added when unmounted 3ms
+ ✓ src/services/premieresService.test.js > fetchPremieres > resolves with the raw API data after the default delay 10ms
+ ✓ src/services/premieresService.test.js > fetchPremieres > returns a copy, so the caller cannot change the source data 1ms
+ ✓ src/services/premieresService.test.js > fetchPremieres > rejects with a clear Spanish message when it should fail 2ms
+ ✓ src/services/premieresService.test.js > readSimulation > forces the error with ?estrenos=error in development 1ms
+ ✓ src/services/premieresService.test.js > readSimulation > slows the request down with ?estrenos=lento in development 0ms
+ ✓ src/services/premieresService.test.js > readSimulation > uses the normal request without the parameter or with an unknown value 0ms
+ ✓ src/services/premieresService.test.js > readSimulation > ignores the parameter outside development 0ms
+ ✓ src/services/premieresService.test.js > simulationFromUrl > reads the current page URL (tests run in development mode) 2ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > gives 390 px → 1 column(s) 5ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > gives 599 px → 1 column(s) 0ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > gives 600 px → 2 column(s) 0ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > gives 768 px → 2 column(s) 0ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > gives 899 px → 2 column(s) 0ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > gives 900 px → 3 column(s) 0ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > gives 1024 px → 3 column(s) 0ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > gives 1199 px → 3 column(s) 0ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > gives 1200 px → 4 column(s) 0ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > gives 1440 px → 4 column(s) 0ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > gives 2560 px → 4 column(s) 0ms
+ ✓ src/utils/columnsForWidth.test.js > columnsForWidth > falls back to one column for invalid widths 0ms
+ ✓ src/hooks/useFavorites.test.js > useFavorites > starts empty when nothing was saved 23ms
+ ✓ src/hooks/useFavorites.test.js > useFavorites > adds a movie and then removes it with the same function 5ms
+ ✓ src/hooks/useFavorites.test.js > useFavorites > derives the count from the list, so both always agree 4ms
+ ✓ src/hooks/useFavorites.test.js > useFavorites > handles two quick toggles in one batch correctly (pure updater) 2ms
+ ✓ src/hooks/useFavorites.test.js > useFavorites > saves every change to localStorage 2ms
+ ✓ src/hooks/useFavorites.test.js > useFavorites > restores the saved favorites on the first render 1ms
+ ✓ src/hooks/useFavorites.test.js > useFavorites > reads localStorage only once, not on every render 2ms
+ ✓ src/hooks/usePremieres.test.js > usePremieres > starts in loading with no data and no error 24ms
+ ✓ src/hooks/usePremieres.test.js > usePremieres > switches to success with the adapted premieres after the delay 9ms
+ ✓ src/hooks/usePremieres.test.js > usePremieres > switches to error with the message when the request fails 4ms
+ ✓ src/hooks/usePremieres.test.js > usePremieres > retry goes back to loading and then to success 6ms
+ ✓ src/hooks/usePremieres.test.js > usePremieres > gives a clear message when the failure has none 3ms
+ ✓ src/hooks/usePremieres.test.js > usePremieres > ignores the answer that arrives after unmounting 2ms
+ ✓ src/hooks/usePremieres.test.js > usePremieres > ignores a slow old answer that arrives after a newer request finished 2ms
+ ✓ src/utils/formatReleaseDate.test.js > formatReleaseDate > writes day and month in Spanish 4ms
+ ✓ src/utils/formatReleaseDate.test.js > formatReleaseDate > keeps the same day whatever the time zone (first and last day of a month) 1ms
+ ✓ src/utils/formatReleaseDate.test.js > formatReleaseDate > returns empty text for a missing or invalid date 0ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > maps every API field to its app field 5ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > returns only the app model, without API names or extra fields 1ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > uses safe defaults when fields are missing 1ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > survives a missing movie 1ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > treats invalid values as missing 1ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > keeps the rating on the 0-10 scale and accepts numeric text 0ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie > drops empty showtimes from the list 0ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie with release dates (premieres) > maps release_date to releaseDate 1ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie with release dates (premieres) > leaves releaseDate out when the API sends no date, so the billboard model is unchanged 0ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie with release dates (premieres) > leaves out dates that are not real YYYY-MM-DD days 1ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovie with release dates (premieres) > adapts all the premieres with their dates 1ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovies > adapts the whole billboard keeping its 8 movies and values 1ms
+ ✓ src/utils/adaptMovie.test.js > adaptMovies > returns an empty billboard when the response is not a list 0ms
+ ✓ src/components/Header/Header.test.jsx > Header favorites counter > shows 0 as "0 favoritas" 35ms
+ ✓ src/components/Header/Header.test.jsx > Header favorites counter > shows 1 as "1 favorita" 5ms
+ ✓ src/components/Header/Header.test.jsx > Header favorites counter > shows 2 as "2 favoritas" 6ms
+ ✓ src/components/Header/Header.test.jsx > Header favorites counter > is a polite live region, so screen readers announce changes 6ms
+ ✓ src/components/Header/Header.test.jsx > Header favorites counter > updates the text when the count received from the parent changes 6ms
+ ✓ src/components/MovieList/MovieList.test.jsx > MovieList columns > sets --columns on the grid from the window width 78ms
+ ✓ src/components/MovieList/MovieList.test.jsx > MovieList columns > changes the column count after the window is resized 13ms
+ ✓ src/components/MovieSearch/MovieSearch.test.jsx > MovieSearch > shows the value it receives 56ms
+ ✓ src/components/MovieCard/MovieCard.test.jsx > MovieCard > reports the movie id to its parent and keeps no state of its own 108ms
+ ✓ src/components/MovieCard/MovieCard.test.jsx > MovieCard > shows the current state received from the parent 13ms
+ ✓ src/components/Button/Button.test.jsx > Button > renders its children with the default variant and size 58ms
+ ✓ src/components/Button/Button.test.jsx > Button > changes its appearance through props alone 3ms
+ ✓ src/components/Button/Button.test.jsx > Button > defaults to type="button" so it never submits a form by accident 3ms
+ ✓ src/components/Button/Button.test.jsx > Button > renders a link when it receives href 3ms
+ ✓ src/components/Button/Button.test.jsx > Button > forwards onClick and aria attributes to the element 50ms
+ ✓ src/components/PremieresSection/PremieresSection.test.jsx > PremieresSection > loading > marks the section as busy and announces the loading to screen readers 93ms
+ ✓ src/components/MovieSearch/MovieSearch.test.jsx > MovieSearch > reports every keystroke through onChange 97ms
+ ✓ src/components/MovieSearch/MovieSearch.test.jsx > MovieSearch > offers the clear button only when there is text 62ms
+ ✓ src/components/PremieresSection/PremieresSection.test.jsx > PremieresSection > loading > shows four decorative skeleton cards and nothing else 7ms
+ ✓ src/components/PremieresSection/PremieresSection.test.jsx > PremieresSection > error > explains the error in an alert with the hook message and a hint 5ms
+ ✓ src/components/PremieresSection/PremieresSection.test.jsx > PremieresSection > error > calls retry when the Reintentar button is pressed 58ms
+ ✓ src/components/PremieresSection/PremieresSection.test.jsx > PremieresSection > success > shows the carousel with every title, poster and Spanish release date 50ms
+ ✓ src/components/PremieresSection/PremieresSection.test.jsx > PremieresSection > success > has Spanish labels on the carousel arrows 14ms
+ ✓ src/App.props.test.jsx > App → Header props > gives Header only the count, never the favorites list 259ms
+ ✓ src/App.test.jsx > App favorites > adds and removes a favorite and updates the header counter 242ms
+ ✓ src/App.test.jsx > App favorites > shows "2 favoritas" in the header after marking two movies 114ms
+ ✓ src/App.test.jsx > App favorites > shows a notice with the title when a favorite is added and when it is removed 139ms
+ ✓ src/App.test.jsx > App favorites > shows one notice per movie, each with its own title 141ms
+ ✓ src/App.test.jsx > App favorites > saves favorites and restores them after a reload 84ms
+ ✓ src/App.test.jsx > App search > filters the billboard after the delay, not on each keystroke 416ms
+ ✓ src/App.test.jsx > App search > shows the empty state and recovers the list from its button 461ms
+ ✓ src/App.test.jsx > App search > keeps favorites while the list is being filtered 545ms
+
+ Test Files  18 passed (18)
+      Tests  100 passed (100)
+   Start at  12:57:39
+   Duration  4.70s (environment 68%, setup 19%, tests 8%, import 3%, transform 1%)
+

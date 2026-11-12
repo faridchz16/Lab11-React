@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 1540" width="1240" height="1540">
+<defs>
+  <marker id="down" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#262626"/>
+  </marker>
+  <marker id="up" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/>
+  </marker>
+</defs>
+<rect width="1240" height="1540" fill="#ffffff"/>
+<text x="620.0" y="38" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="bold" fill="#171717" text-anchor="middle">Árbol de componentes de Cine Aurora (laboratorio 11)</text>
+<rect x="60" y="58" width="22" height="18" rx="4" fill="#fde2e1" stroke="#b42318"/>
+<text x="90" y="73" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">estado (useState / hook)</text>
+<rect x="310" y="58" width="22" height="18" rx="4" fill="#dbeafe" stroke="#1d4ed8"/>
+<text x="340" y="73" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">derivado (se calcula)</text>
+<rect x="560" y="58" width="22" height="18" rx="4" fill="#ececec" stroke="#525252"/>
+<text x="590" y="73" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">dato fijo</text>
+<line x1="810" y1="67" x2="850" y2="67" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<text x="858" y="73" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">props (bajan)</text>
+<line x1="975" y1="67" x2="1015" y2="67" stroke="#c2410c" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#up)"/>
+<text x="1023" y="73" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="bold" fill="#c2410c" text-anchor="start">callbacks (suben)</text>
+<rect x="40" y="100" width="1160" height="190" rx="12" fill="#fff7f7" stroke="#b42318" stroke-width="3"/>
+<text x="54" y="130" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="bold" fill="#b42318" text-anchor="start">App</text>
+<text x="110" y="130" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start" font-style="italic">ancestro común: dueño del estado compartido</text>
+<rect x="52.0" y="144" width="276.5" height="134" rx="8" fill="#fde2e1"/>
+<text x="62.0" y="164" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="bold" fill="#b42318" text-anchor="start">ESTADO</text>
+<text x="62.0" y="190" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">favoriteIds · useFavorites</text>
+<text x="62.0" y="215" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">searchText · useState</text>
+<rect x="336.5" y="144" width="276.5" height="134" rx="8" fill="#dbeafe"/>
+<text x="346.5" y="164" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="bold" fill="#1d4ed8" text-anchor="start">DERIVADO</text>
+<text x="346.5" y="190" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">favoriteCount = ids.length</text>
+<text x="346.5" y="215" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">debouncedText · useDebounce</text>
+<text x="346.5" y="240" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">searchQuery → activeFilter</text>
+<rect x="621.0" y="144" width="276.5" height="134" rx="8" fill="#ececec"/>
+<text x="631.0" y="164" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="bold" fill="#525252" text-anchor="start">FIJO</text>
+<text x="631.0" y="190" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">movies = adaptMovies(…)</text>
+<text x="631.0" y="215" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">featured (mejor valorada)</text>
+<text x="631.0" y="240" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">cinema (menú, contacto)</text>
+<rect x="905.5" y="144" width="276.5" height="134" rx="8" fill="#ffedd5"/>
+<text x="915.5" y="164" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="bold" fill="#c2410c" text-anchor="start">FUNCIONES QUE REPARTE</text>
+<text x="915.5" y="190" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">handleToggleFavorite(id)</text>
+<text x="915.5" y="215" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">  → toggle + toast()</text>
+<text x="915.5" y="240" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">clearSearch()</text>
+<text x="915.5" y="265" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">handleSearchChange(text)</text>
+<rect x="60" y="360" width="330" height="152" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="72" y="388" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">Header</text>
+<text x="72" y="416" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#525252" text-anchor="start" font-style="italic">sin estado</text>
+<text x="74" y="442" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">name, navLinks</text>
+<text x="74" y="468" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">favoriteCount (número)</text>
+<text x="74" y="494" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">«♥ 3 favoritas» · aria-live</text>
+<rect x="455" y="360" width="330" height="126" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="467" y="388" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">Toaster</text>
+<text x="467" y="416" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#525252" text-anchor="start" font-style="italic">react-hot-toast</text>
+<text x="469" y="442" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">TOASTER_PROPS (posición, estilos)</text>
+<text x="469" y="468" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">muestra los toast() que lanza App</text>
+<rect x="850" y="360" width="330" height="126" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="862" y="388" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">Footer</text>
+<text x="862" y="416" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#525252" text-anchor="start" font-style="italic">sin estado</text>
+<text x="864" y="442" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">name, contact</text>
+<text x="864" y="468" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">año calculado al dibujar</text>
+<polyline points="225.0,290 225.0,360" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<text x="233.0" y="330.0" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#262626" text-anchor="start">favoriteCount</text>
+<polyline points="620.0,290 620.0,360" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<polyline points="1015.0,290 1015.0,360" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<text x="1023.0" y="330.0" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#262626" text-anchor="start">name, contact</text>
+<rect x="30" y="540" width="1180" height="970" rx="14" fill="none" stroke="#a3a3a3" stroke-width="2" stroke-dasharray="4 6"/>
+<text x="62" y="564" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="bold" fill="#737373" text-anchor="start">&lt;main&gt;</text>
+<rect x="70" y="640" width="340" height="152" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="82" y="668" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">Hero</text>
+<text x="82" y="696" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#525252" text-anchor="start" font-style="italic">sin estado</text>
+<text x="84" y="722" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">movie = featured</text>
+<text x="84" y="748" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">children (armados en App)</text>
+<text x="84" y="774" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">no conoce searchText</text>
+<rect x="450" y="640" width="340" height="152" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="462" y="668" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">PremieresSection</text>
+<text x="462" y="696" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#525252" text-anchor="start" font-style="italic">dueña de sus datos</text>
+<rect x="458" y="706" width="324" height="22" rx="5" fill="#fde2e1"/>
+<text x="464" y="722" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="bold" fill="#b42318" text-anchor="start">ESTADO</text>
+<text x="518" y="722" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">status · premieres · error</text>
+<text x="464" y="748" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">  ← usePremieres() (+ retry)</text>
+<text x="464" y="774" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">sin props</text>
+<rect x="830" y="640" width="340" height="182" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="842" y="668" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">MovieList</text>
+<text x="844" y="700" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">movies, query, favoriteIds</text>
+<text x="844" y="726" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">onToggleFavorite, onClearSearch</text>
+<rect x="838" y="736" width="324" height="22" rx="5" fill="#fde2e1"/>
+<text x="844" y="752" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="bold" fill="#b42318" text-anchor="start">ESTADO</text>
+<text x="898" y="752" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">width · useWindowSize</text>
+<rect x="838" y="762" width="324" height="22" rx="5" fill="#dbeafe"/>
+<text x="844" y="778" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="bold" fill="#1d4ed8" text-anchor="start">DERIVADO</text>
+<text x="914" y="778" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">visibleMovies (useMemo)</text>
+<rect x="838" y="788" width="324" height="22" rx="5" fill="#dbeafe"/>
+<text x="844" y="804" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="bold" fill="#1d4ed8" text-anchor="start">DERIVADO</text>
+<text x="914" y="804" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">columns = columnsForWidth</text>
+<polyline points="420,290 420,600 240.0,600 240.0,640" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<text x="248.0" y="628" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#171717" text-anchor="start">movie, children</text>
+<polyline points="815,290 815,600 620.0,600 620.0,640" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<text x="628.0" y="628" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#171717" text-anchor="start">sin props</text>
+<polyline points="1198,290 1198,600 1000.0,600 1000.0,640" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<text x="1008.0" y="628" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="normal" fill="#171717" text-anchor="start">movies, query, favoriteIds, …</text>
+<rect x="70" y="900" width="340" height="130" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="82" y="928" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">MovieSearch</text>
+<text x="84" y="960" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">value = searchText</text>
+<text x="84" y="986" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">onChange, onClear</text>
+<text x="84" y="1012" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">input controlado, sin estado</text>
+<rect x="70" y="1090" width="340" height="78" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="82" y="1118" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">Button «Ver cartelera»</text>
+<text x="84" y="1150" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">href = #cartelera</text>
+<rect x="70" y="1200" width="340" height="130" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="82" y="1228" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">Button «Quitar filtro»</text>
+<text x="84" y="1260" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">onClick = clearSearch</text>
+<text x="84" y="1286" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">+ «Filtrando por…» (aria-live)</text>
+<text x="84" y="1312" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">solo si activeFilter</text>
+<rect x="450" y="900" width="340" height="104" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="462" y="928" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">SkeletonCard × 4</text>
+<text x="464" y="960" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">status = 'loading'</text>
+<text x="464" y="986" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">aria-hidden, sin props</text>
+<rect x="450" y="1040" width="340" height="130" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="462" y="1068" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">Alerta + Button «Reintentar»</text>
+<text x="464" y="1100" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">status = 'error'</text>
+<text x="464" y="1126" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">mensaje = error</text>
+<text x="464" y="1152" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">onClick = retry</text>
+<rect x="450" y="1205" width="340" height="156" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="462" y="1233" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">PremiereCarousel</text>
+<text x="464" y="1265" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">status = 'success'</text>
+<text x="464" y="1291" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">premieres (adaptados)</text>
+<rect x="458" y="1301" width="324" height="22" rx="5" fill="#fde2e1"/>
+<text x="464" y="1317" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="bold" fill="#b42318" text-anchor="start">ESTADO</text>
+<text x="518" y="1317" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">width · useWindowSize</text>
+<rect x="458" y="1327" width="324" height="22" rx="5" fill="#dbeafe"/>
+<text x="464" y="1343" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="bold" fill="#1d4ed8" text-anchor="start">DERIVADO</text>
+<text x="534" y="1343" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#171717" text-anchor="start">slidesPerView = columnsForWidth</text>
+<rect x="450" y="1420" width="340" height="78" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="462" y="1448" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">Swiper › SwiperSlide × 6</text>
+<text x="464" y="1480" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">póster, título, releaseDate</text>
+<rect x="830" y="900" width="340" height="130" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="842" y="928" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">EmptyState</text>
+<text x="844" y="960" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">si visibleMovies está vacío</text>
+<text x="844" y="986" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">title</text>
+<text x="844" y="1012" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">children = Button «Ver toda…»</text>
+<rect x="830" y="1090" width="340" height="156" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="842" y="1118" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">MovieCard × n</text>
+<text x="844" y="1150" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">movie</text>
+<text x="844" y="1176" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">isFavorite (booleano)</text>
+<text x="844" y="1202" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">onToggleFavorite</text>
+<text x="844" y="1228" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#525252" text-anchor="start">sin estado</text>
+<rect x="830" y="1280" width="340" height="78" rx="10" fill="#ffffff" stroke="#171717" stroke-width="2"/>
+<text x="842" y="1308" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#171717" text-anchor="start">Button «Añadir a favoritas»</text>
+<text x="844" y="1340" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="normal" fill="#262626" text-anchor="start">onClick → onToggleFavorite(id)</text>
+<polyline points="370,792 370,810 424,810 424,930 410,930" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<polyline points="370,792 370,810 424,810 424,1120 410,1120" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<polyline points="370,792 370,810 424,810 424,1230 410,1230" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<text x="362" y="832" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#525252" text-anchor="end">children</text>
+<polyline points="750,792 750,810 804,810 804,930 790,930" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<polyline points="750,792 750,810 804,810 804,1070 790,1070" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<polyline points="750,792 750,810 804,810 804,1235 790,1235" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<text x="742" y="832" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#525252" text-anchor="end">si loading / si error / si success</text>
+<polyline points="1130,822 1130,840 1184,840 1184,930 1170,930" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<polyline points="1130,822 1130,840 1184,840 1184,1120 1170,1120" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<text x="1122" y="862" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="normal" fill="#525252" text-anchor="end">si 0 resultados / visibleMovies.map</text>
+<polyline points="690,1361 690,1420" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<polyline points="1070,1246 1070,1280" fill="none" stroke="#262626" stroke-width="2" marker-end="url(#down)"/>
+<polyline points="70,934 48,934 48,290" fill="none" stroke="#c2410c" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#up)"/>
+<text x="78" y="890" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#c2410c" text-anchor="start">↑ a App: onChange(text) · onClear()</text>
+<polyline points="70,1234 48,1234 48,290" fill="none" stroke="#c2410c" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#up)"/>
+<text x="78" y="1190" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#c2410c" text-anchor="start">↑ a App: clearSearch()</text>
+<polyline points="450,1074 436,1074 436,768 450,768" fill="none" stroke="#c2410c" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#up)"/>
+<text x="458" y="1030" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#c2410c" text-anchor="start">↑ a PremieresSection: retry()</text>
+<polyline points="830,934 816,934 816,798 830,798" fill="none" stroke="#c2410c" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#up)"/>
+<text x="838" y="890" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#c2410c" text-anchor="start">↑ a MovieList: onClearSearch()</text>
+<polyline points="830,1124 816,1124 816,798 830,798" fill="none" stroke="#c2410c" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#up)"/>
+<text x="838" y="1080" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#c2410c" text-anchor="start">↑ a MovieList: onToggleFavorite(id)</text>
+<polyline points="870,1280 870,1246" fill="none" stroke="#c2410c" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#up)"/>
+<text x="880" y="1266" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#c2410c" text-anchor="start">onToggleFavorite(id)</text>
+<polyline points="1170,670 1222,670 1222,250 1200,250" fill="none" stroke="#c2410c" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#up)"/>
+<text x="1180" y="528" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="#c2410c" text-anchor="end">↑ a App: onToggleFavorite(id) · onClearSearch()</text>
+</svg>

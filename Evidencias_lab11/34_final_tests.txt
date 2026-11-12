@@ -1,0 +1,25 @@
+# Comprobación final del laboratorio 11 (rama lab11)
+# Comandos: cd frontend && npm test && npm run lint
+
+$ npm test
+
+> frontend@0.0.0 test
+> vitest run
+
+
+ RUN  v5.1.0 E:/ClaudeCode/Lab11-React/frontend
+
+
+ Test Files  18 passed (18)
+      Tests  104 passed (104)
+   Start at  13:16:19
+   Duration  6.30s (environment 68%, setup 18%, tests 10%, import 3%, transform 1%)
+
+(código de salida: 0)
+
+$ npm run lint
+
+> frontend@0.0.0 lint
+> eslint .
+
+(código de salida: 0; sin salida de ESLint = sin errores ni avisos)

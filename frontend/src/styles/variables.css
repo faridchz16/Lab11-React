@@ -29,13 +29,27 @@
   --font-size-lg: 1.25rem;
   --font-size-xl: 1.75rem;
   --font-size-2xl: 2.5rem;
+  --font-size-3xl: 3.5rem;
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
+  --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
+  --line-height-none: 1;
   --line-height-tight: 1.2;
+  --line-height-snug: 1.4;
   --line-height-base: 1.6;
+  --line-height-relaxed: 1.75;
+
+  /* Line height that pairs with each font size of the scale. */
+  --line-height-xs: var(--line-height-snug);
+  --line-height-sm: var(--line-height-snug);
+  --line-height-md: var(--line-height-base);
+  --line-height-lg: var(--line-height-snug);
+  --line-height-xl: var(--line-height-tight);
+  --line-height-2xl: var(--line-height-tight);
+  --line-height-3xl: var(--line-height-none);
 
   /* Spacing scale */
   --space-1: 0.25rem;
@@ -46,9 +60,13 @@
   --space-6: 2rem;
   --space-7: 3rem;
   --space-8: 4rem;
+  --space-9: 6rem;
 
   /* Layout */
   --container-max-width: 1200px;
+  --section-space: var(--space-7);
+  --grid-gap: var(--space-5);
+  --grid-min-column: 0;
 
   /* Radius */
   --radius-sm: 4px;
@@ -58,6 +76,28 @@
 
   /* Motion */
   --transition-fast: 0.15s ease;
+  --transition-base: 0.3s ease;
+
+  /* Notification (toast) colors */
+  --color-success: #2e9e5b;
+  --color-success-bg: #12291c;
+  --color-error: #e5484d;
+  --color-error-bg: #2d1416;
+  --color-info: #3b82f6;
+  --color-info-bg: #13203a;
+  --toast-text: var(--color-text);
+  --toast-bg: var(--color-surface-alt);
+  --toast-border: var(--color-border);
+  --toast-radius: var(--radius-md);
+
+  /* Loading skeleton */
+  --skeleton-base: var(--color-surface);
+  --skeleton-highlight: var(--color-surface-alt);
+  --skeleton-radius: var(--radius-md);
+  --skeleton-duration: 1.4s;
+
+  /* Layers */
+  --z-toast: 1000;
 
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);

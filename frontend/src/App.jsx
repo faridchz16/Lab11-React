@@ -1,17 +1,24 @@
-import { useEffect, useState } from 'react'
-import { movies, cinema } from './data/movies.js'
+import { useState } from 'react'
+import toast, { Toaster } from 'react-hot-toast'
+import { apiMovies, cinema } from './data/movies.js'
 import Button from './components/Button/Button.jsx'
 import Header from './components/Header/Header.jsx'
 import Footer from './components/Footer/Footer.jsx'
 import Hero from './components/Hero/Hero.jsx'
 import MovieList from './components/MovieList/MovieList.jsx'
 import MovieSearch from './components/MovieSearch/MovieSearch.jsx'
-import { useDebouncedValue } from './hooks/useDebouncedValue.js'
+import PremieresSection from './components/PremieresSection/PremieresSection.jsx'
+import { useDebounce } from './hooks/useDebounce.js'
+import { useFavorites } from './hooks/useFavorites.js'
+import { adaptMovies } from './utils/adaptMovie.js'
 import { debugLog } from './utils/debugLog.js'
-import { loadFavoriteIds, saveFavoriteIds } from './utils/favoritesStorage.js'
+import { TOASTER_PROPS } from './utils/toastOptions.js'
 
 // Pause after the last keystroke before the search is applied.
 const SEARCH_DELAY_MS = 300
+
+// The billboard goes through the adapter once: from here on the app only sees its own model.
+const movies = adaptMovies(apiMovies)
 
 // The featured movie is the highest-rated one.
 const featured = movies.reduce((best, movie) =>
@@ -20,13 +27,18 @@ const featured = movies.reduce((best, movie) =>
 
 // Root component of the movie billboard app.
 function App() {
-  // Lazy initializer: localStorage is read once, not on every render.
-  const [favoriteIds, setFavoriteIds] = useState(loadFavoriteIds)
+  // Favorites live here because App is the closest common ancestor of Header (count)
+  // and MovieList (buttons). The hook holds the logic; App holds the state.
+  const { favoriteIds, favoriteCount, toggleFavorite, isFavorite } = useFavorites()
   const [searchText, setSearchText] = useState('')
-  const debouncedText = useDebouncedValue(searchText, SEARCH_DELAY_MS)
+  const debouncedText = useDebounce(searchText, SEARCH_DELAY_MS)
   // Emptying the box is not a typing burst: the full list comes back at once.
   const searchQuery = searchText === '' ? '' : debouncedText
+  // Derived, not state: the filter the billboard is applying right now.
+  const activeFilter = searchQuery.trim()
 
+  // The single way to clear the search. The three places that offer it (the search box,
+  // the banner and the empty state) all receive this same function.
   function clearSearch() {
     setSearchText('')
   }
@@ -36,17 +48,22 @@ function App() {
     setSearchText(text)
   }
 
-  useEffect(() => {
-    saveFavoriteIds(favoriteIds)
-  }, [favoriteIds])
+  // Toggles the favorite, then tells the user. App owns the state, so App decides how
+  // the notice looks; MovieCard only reports the click.
+  function handleToggleFavorite(movieId) {
+    // Read before updating: the state updater inside the hook stays pure (no side effects).
+    const wasFavorite = isFavorite(movieId)
+    const title = movies.find((movie) => movie.id === movieId)?.title ?? 'La película'
 
-  // Adds the movie when it is missing from the list and removes it otherwise.
-  function toggleFavorite(movieId) {
-    setFavoriteIds((currentIds) =>
-      currentIds.includes(movieId)
-        ? currentIds.filter((id) => id !== movieId)
-        : [...currentIds, movieId],
-    )
+    toggleFavorite(movieId)
+
+    // Same id per movie: toggling it again replaces its notice instead of stacking a new one.
+    const toastId = `favorite-${movieId}`
+    if (wasFavorite) {
+      toast(`${title} quitada de favoritas`, { id: toastId })
+    } else {
+      toast.success(`♥ ${title} añadida a favoritas`, { id: toastId })
+    }
   }
 
   return (
@@ -54,7 +71,7 @@ function App() {
       <Header
         name={cinema.name}
         navLinks={cinema.navLinks}
-        favoriteCount={favoriteIds.length}
+        favoriteCount={favoriteCount}
       />
       <main>
         <Hero movie={featured}>
@@ -63,17 +80,32 @@ function App() {
             onChange={handleSearchChange}
             onClear={clearSearch}
           />
-          <Button href="#cartelera">Ver cartelera</Button>
+          {/* Hero only renders these children: it never sees searchText. */}
+          <div className="cluster">
+            <Button href="#cartelera">Ver cartelera</Button>
+            {activeFilter && (
+              <Button variant="secondary" onClick={clearSearch}>
+                Quitar filtro
+              </Button>
+            )}
+            {/* Always in the DOM, so screen readers notice when the text appears or changes. */}
+            <p className="text-sm text-muted" aria-live="polite">
+              {activeFilter && `Filtrando por «${activeFilter}»`}
+            </p>
+          </div>
         </Hero>
+        {/* Owns its own data (usePremieres): App keeps no premieres state. */}
+        <PremieresSection />
         <MovieList
           movies={movies}
           query={searchQuery}
           favoriteIds={favoriteIds}
-          onToggleFavorite={toggleFavorite}
+          onToggleFavorite={handleToggleFavorite}
           onClearSearch={clearSearch}
         />
       </main>
       <Footer name={cinema.name} contact={cinema.contact} />
+      <Toaster {...TOASTER_PROPS} />
     </>
   )
 }

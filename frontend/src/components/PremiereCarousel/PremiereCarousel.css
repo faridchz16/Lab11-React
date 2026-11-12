@@ -1,0 +1,76 @@
+/* Swiper reads these variables; they map its colors and sizes to the design tokens. */
+.premiere-carousel {
+  --swiper-theme-color: var(--color-primary);
+  --swiper-navigation-color: var(--color-text);
+  --swiper-navigation-size: 1.75rem;
+  --swiper-navigation-sides-offset: var(--space-2);
+  --swiper-pagination-color: var(--color-primary);
+  --swiper-pagination-bullet-inactive-color: var(--color-text-muted);
+  --swiper-pagination-bullet-inactive-opacity: 0.5;
+  --swiper-pagination-bullet-size: 0.625rem;
+  --swiper-pagination-bottom: 0;
+
+  /* Room under the slides for the dots. */
+  padding-block-end: var(--space-6);
+}
+
+.premiere-carousel__slide {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  overflow: hidden;
+  background-color: var(--color-surface);
+  border: thin solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.premiere-carousel__poster {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+}
+
+.premiere-carousel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+}
+
+.premiere-carousel__title {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-lg);
+}
+
+.premiere-carousel__date {
+  color: var(--color-text-muted);
+}
+
+.premiere-carousel__date time {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-rating);
+}
+
+/* Arrows on a dark round background, so they stay readable over any poster. */
+.premiere-carousel .swiper-button-prev,
+.premiere-carousel .swiper-button-next {
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-block-start: calc(-1 * var(--space-6));
+  padding: var(--space-3);
+  background-color: var(--color-surface-alt);
+  border: thin solid var(--color-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-md);
+}
+
+.premiere-carousel .swiper-button-prev:hover,
+.premiere-carousel .swiper-button-next:hover {
+  border-color: var(--color-primary);
+}
+
+.premiere-carousel .swiper-button-disabled {
+  opacity: 0;
+}
