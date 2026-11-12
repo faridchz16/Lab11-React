@@ -2,6 +2,57 @@
 
 **Integrantes:** Alonso Abad Mejia y Farid Chavez · **Curso:** Desarrollo de Aplicaciones Empresariales · **Sección:** 4-C24-A
 
+## Resumen
+
+La cartelera **Cine Aurora** del laboratorio 10 se amplió para practicar la comunicación entre
+componentes, los hooks propios y la integración de bibliotecas de interfaz. Todo el trabajo se
+hizo en la rama `lab11` y se fusionará en `main` con un Pull Request.
+
+- **Comunicación entre componentes:**
+  - Las favoritas viven en `App`, el ancestro común de `Header` y `MovieCard`. `Header` recibe
+    solo el número.
+  - El texto de búsqueda también vive en `App`. Lo comparten tres hermanos (buscador, banner y
+    cartelera), y los tres limpian el filtro con la misma función.
+  - Los estrenos viven en la sección que los usa, sin subir más de lo necesario.
+- **Cuatro hooks propios** en `src/hooks/`, todos con pruebas:
+  - `useDebounce`, compartido por `App` y `useWindowSize`;
+  - `useWindowSize`, compartido por `MovieList` y `PremiereCarousel`;
+  - `usePremieres`, con los estados de carga, datos y error, y reintento;
+  - `useFavorites`.
+- **Dos bibliotecas de interfaz:**
+  - `react-hot-toast`, para el aviso al marcar o desmarcar una favorita. Lo lanza `App`; la
+    tarjeta no la conoce.
+  - `Swiper`, para el carrusel de estrenos: accesible, en español y con el número de
+    diapositivas según el ancho.
+- **Patrón adaptador:** los datos llegan con forma de API (`snake_case`) y `adaptMovie` los
+  convierte al modelo de la aplicación. Lo usan la cartelera y los estrenos.
+- **Componentes nuevos:**
+  - `Skeleton` y `SkeletonCard`, que miden lo mismo que el contenido real, así que la página no
+    se mueve al cargar;
+  - `PremiereCarousel`;
+  - `PremieresSection`.
+- **Calidad:** se pasó de 26 a **104 pruebas** (18 archivos). `npm run lint` no da avisos y
+  `npm run build` compila. Las capturas se tomaron con un script de Playwright
+  (`scripts/capture.mjs`), y los estados difíciles de ver (carga lenta, error) se fuerzan con un
+  parámetro de URL que solo existe en desarrollo.
+
+## Pasos de la guía
+
+| Paso | Qué se hizo | Commit | Evidencias |
+|------|-------------|--------|------------|
+| 1 | Repositorio nuevo a partir del Lab 10, rama `lab11`, `CLAUDE.md` actualizado, `react-hot-toast` y `swiper` instalados, línea base | `ce805d2` Configuración del laboratorio 11 | 01, 02 |
+| 2 | Tokens de tipografía, avisos y esqueleto; utilidades `.text-*`, `.font-*`, `.section`, `.grid` con `--columns` y `.skeleton`; script de capturas | `ded89cf` Paso 2 | 03, 04 |
+| 3 | Datos con forma de API y adaptador `adaptMovie` / `adaptMovies` | `1f256b1` Paso 3 | 05, 06 |
+| 4 | Aviso con `react-hot-toast` al marcar y desmarcar favoritas, lanzado desde `App` | `5f47926` Paso 4 | 07, 08, 09 |
+| 5 | Hook `useDebounce` en el buscador, que sustituye a `useDebouncedValue` | `3932982` Paso 5 | 10, 11, 12 |
+| 6 | Hook `useWindowSize` (con `useDebounce` dentro) y `columnsForWidth` para las tarjetas por fila | `9a8cd87` Paso 6 | 13 a 17 |
+| 7 | Servicio simulado, hook `usePremieres` con 3 estados, cancelación y reintento; modo de simulación solo en desarrollo | `ab02631` Paso 7 | 18 |
+| 8 | `Skeleton`, `SkeletonCard`, `PremiereCarousel` con Swiper y `PremieresSection` con los 3 estados; enlace «Estrenos» | `8bd4d76` Paso 8 | 19 a 24 |
+| 9 | Hook `useFavorites`, contador accesible en `Header`, prueba de que `Header` recibe solo el número; esqueleto igualado al carrusel | `f66b4c7` Paso 9 | 25, 26, 27 (y 19 y 22 repetidas) |
+| 10 | Botón «Quitar filtro» y «Filtrando por…» en el banner; los tres caminos usan `clearSearch` | `7dbf6ba` Paso 10 | 28, 29, 30 |
+| 11 | Árbol de componentes con el estado de cada nivel; por qué el contador no vive en `Header` | `84c2d62` Paso 11 | 31, 32 |
+| 12 | Estructura en el editor, comprobación final, README, cierre del entregable y descripción del Pull Request | `Paso 12: README, cierre del entregable…` | 33, 34, 35 |
+
 ## Paso 1: Preparación del proyecto
 
 - **Punto de partida:** se partió del laboratorio 10
@@ -1578,3 +1629,94 @@ El SVG se generó con un pequeño script de Python fuera del repositorio. La pri
 flechas de callbacks que atravesaban cajas (`retry()` cruzaba `SkeletonCard`, y
 `onToggleFavorite` cruzaba `EmptyState`). Se rehízo llevando todas las flechas por los pasillos
 entre columnas.
+
+## Paso 12: Cierre del laboratorio
+
+### Estructura del proyecto en el editor
+
+![Estructura en VS Code](../../Evidencias_lab11/33_estructura_vscode.png)
+
+[33_estructura_vscode.png](../../Evidencias_lab11/33_estructura_vscode.png): el explorador de
+VS Code con `frontend/src` desplegado. Se ve la organización del laboratorio:
+
+- **`components/`:** una carpeta por componente, incluidos los nuevos `PremiereCarousel`,
+  `PremieresSection` y `Skeleton`.
+- **`hooks/`:** los cuatro hooks propios (`useDebounce`, `useFavorites`, `usePremieres`,
+  `useWindowSize`), cada uno junto a su archivo de pruebas.
+- **`services/`:** `premieresService.js`, la petición simulada, con sus pruebas.
+- **`utils/`:** funciones puras como `adaptMovie`, `columnsForWidth`, `formatReleaseDate`,
+  `favoritesStorage`, `filterMovies` y `toastOptions`, también con pruebas.
+- **En la raíz de `src/`:** `App.jsx`, `App.test.jsx`, `App.props.test.jsx` y `main.jsx`, y en
+  la raíz del repositorio, la carpeta `scripts/` con el script de capturas.
+
+En el editor está abierto `useDebounce.test.js`, con las pruebas del paso 5 y sus temporizadores
+falsos.
+
+### Comprobación final
+
+| Comando | Resultado | Evidencia |
+|---------|-----------|-----------|
+| `npm test` | 18 archivos, **104 pruebas superadas**, código de salida 0 | [34_final_tests.txt](../../Evidencias_lab11/34_final_tests.txt) |
+| `npm run lint` | Sin errores ni avisos, código de salida 0 | [34_final_tests.txt](../../Evidencias_lab11/34_final_tests.txt) |
+| `npm run build` | 94 módulos; JS 350.84 kB (109.63 kB gzip), CSS 27.91 kB (5.14 kB gzip), código de salida 0 | [35_final_build.txt](../../Evidencias_lab11/35_final_build.txt) |
+
+### Documentación de cierre
+
+- **`README.md` (raíz):** sección nueva «Lab11» arriba. El contenido de los laboratorios 10, 09 y
+  08 sigue debajo, sin cambios.
+- **`frontend/docs/PR_LAB11.md`:** la descripción del Pull Request de `lab11` a `main`.
+
+## Uso de IA
+
+El laboratorio se desarrolló con **Claude Code**. **El alumno dirigió los pasos:**
+- escribió las instrucciones de cada paso a partir de la guía;
+- decidió el orden y lo que entraba en cada commit;
+- tomó sus propias capturas (01, 02 y 33);
+- revisó cada resultado en el navegador antes de pasar al siguiente.
+
+Claude Code escribió el código, las pruebas y la documentación, y tomó las capturas automáticas.
+Cada commit lo indica con la línea `Co-Authored-By`.
+
+| Paso | Qué se le pidió | Qué hizo | Qué se aceptó | Qué se corrigió o descartó, y por qué |
+|------|-----------------|----------|---------------|----------------------------------------|
+| 1 | Preparar el repositorio, las dependencias y la línea base | Actualizó `CLAUDE.md`, instaló las bibliotecas, ejecutó las pruebas y creó el entregable | Todo | Los 4 avisos de `npm audit` se revisaron: vienen de `minimatch` (ESLint, solo en desarrollo), no de los paquetes nuevos. Se documentaron en lugar de forzar `audit fix` |
+| 2 | Script de capturas y utilidades CSS | Escribió `capture.mjs` y los tokens y utilidades; comparó las capturas byte a byte | Las utilidades y el script | En las capturas completas faltaban los carteles con carga diferida, y la cabecera fija salía a media página. Se corrigió el script (recorrer la página y volver arriba sin animación), no la aplicación |
+| 3 | Adaptador de películas | Pasó los datos a formato API y escribió `adaptMovie` con valores por defecto | Todo | El póster por defecto es `null` y no `''`, para que React no genere `src=""` |
+| 4 | Aviso con `react-hot-toast` | Montó el `Toaster` y lanzó el aviso desde `App`; la tarjeta no cambió | Todo | Las pruebas fallaban en jsdom por falta de `matchMedia`: se añadió un sustituto **solo en las pruebas** |
+| 5 | Hook `useDebounce` | Sustituyó el hook del Lab 10 y escribió 5 pruebas | Todo | En el entregable se había escrito que `git mv` conservaba el historial del archivo. Era falso (Git lo registra como borrado más archivo nuevo) y se corrigió |
+| 6 | Hook `useWindowSize` | Escribió el hook con `useDebounce` dentro y la rejilla con `--columns` | Todo | Se descartó un `align-items: start` que cambiaba la altura de las tarjetas. Se documentó que la rejilla pasa de 4 a 3 columnas a 1024 px |
+| 7 | Hook `usePremieres` | Escribió el servicio, el hook, la simulación y 19 pruebas | Todo | Dos pruebas de la bandera de cancelación pasaban **aunque se quitara la bandera**: se reescribieron hasta que fallaran sin ella. Se comprobó con un build real que la simulación no llega a producción |
+| 8 | Esqueleto y carrusel | Escribió los cuatro componentes y tomó las capturas de cada estado | Todo | En las capturas, los esqueletos salían aplastados y en móvil asomaba una segunda tarjeta. Se corrigió el CSS (pruebas en jsdom no podían verlo) |
+| 9 | `useFavorites` y contador | Extrajo el hook, hizo accesible el contador y probó las props de `Header` | Todo, incluido devolver también `isFavorite`, que `App` necesita para el aviso | El carrusel empujaba la página 42 px al cargar. Se midió y se igualó la altura del esqueleto, y se repitieron las capturas 19 y 22 |
+| 10 | Botón «Quitar filtro» | Lo añadió en los `children` del banner y probó que los tres caminos usan la misma función | Todo | La línea de estado se movió dentro de la fila de botones porque añadía 12 px al banner. La prueba de «misma función» se comprobó al revés (falla con una copia) |
+| 11 | Árbol de componentes | Recorrió el código, generó el diagrama SVG/PNG y escribió las tablas | Todo | La primera versión del diagrama tenía flechas que atravesaban cajas y textos encimados; se rehízo |
+| 12 | Cierre | Comprobación final, README, entregable y descripción del Pull Request | — | — |
+
+En todos los pasos se pidió que la IA verificara su propio trabajo (pruebas, capturas revisadas,
+mediciones en el navegador) y que dijera lo que no funcionó. Varias de las correcciones de la tabla
+salieron de esa revisión, no de la primera versión.
+
+## Conclusiones
+
+1. **El estado sube hasta el ancestro común, y no más.** Las favoritas y la búsqueda viven en
+   `App` porque las usan ramas distintas. Los estrenos viven en `PremieresSection` porque nadie
+   más los necesita. Esa regla decidió dónde poner cada `useState` del laboratorio.
+2. **Los hijos avisan; el dueño decide.** `MovieCard` solo llama a `onToggleFavorite(id)`. `App`
+   actualiza el estado y lanza el aviso. Por eso se pudo añadir `react-hot-toast` sin tocar la
+   tarjeta, y cambiar de biblioteca solo afectaría a `App`.
+3. **Lo que se puede calcular no se guarda.** `favoriteCount`, `visibleMovies`, `columns`,
+   `slidesPerView` y `activeFilter` se derivan en cada render. Con una sola fuente de verdad no hay
+   copias que se desincronicen. Los tres botones de limpiar funcionan porque solo existe un
+   `searchText`.
+4. **Un hook propio extrae lógica, no estado compartido.** `useDebounce` sirve igual para texto
+   que para el tamaño de la ventana, y cada componente que llama a `useWindowSize` tiene su propia
+   copia. Lo que comparten es el código, no los datos. Respetar las reglas de los hooks (nivel
+   superior y mismo orden) es lo que hace posible combinarlos.
+5. **Los efectos necesitan limpieza.** Quitar el listener de `resize`, cancelar el temporizador
+   del debounce e ignorar las respuestas tardías con una bandera evitan errores que no se ven a
+   simple vista. Las pruebas con temporizadores falsos, y comprobar que fallan si se quita la
+   limpieza, son la forma de demostrarlo.
+6. **Las pruebas no bastan: también hay que mirar.** Las 104 pruebas pasaban mientras los
+   esqueletos salían aplastados, la página saltaba 42 px al cargar o los carteles no aparecían en
+   las capturas. jsdom no calcula la maquetación. Las capturas automáticas y las mediciones en un
+   navegador real encontraron problemas que las pruebas no podían ver.

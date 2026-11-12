@@ -1,3 +1,96 @@
+# Lab11: Comunicación entre componentes, hooks propios y bibliotecas de interfaz
+
+Laboratorio 11 de Desarrollo de Aplicaciones Empresariales (DAE). Continúa la cartelera **Cine Aurora** del laboratorio 10 (su documentación y la de los laboratorios anteriores siguen más abajo, sin cambios) y la amplía en `frontend/` con estado elevado al ancestro común, cuatro hooks propios, avisos emergentes, un carrusel de estrenos y estados de carga y error. El backend Django del laboratorio 08 sigue en la raíz sin cambios.
+
+**Integrantes:** Alonso Abad Mejia y Farid Chavez
+
+## 🚀 Descripción
+
+- **⭐ Favoritas en el ancestro común:** `favoriteIds` vive en `App` (hook `useFavorites`), porque lo usan dos ramas distintas: `Header` muestra el contador y `MovieCard` el botón. `Header` recibe solo el número, y el contador se calcula, no se guarda.
+- **🔔 Avisos emergentes:** al marcar o desmarcar una favorita aparece un aviso con `react-hot-toast`. Lo lanza `App`, que es quien tiene el estado; `MovieCard` no conoce la biblioteca.
+- **🎞️ Carrusel de estrenos:** sección «Próximos estrenos» con `Swiper` (flechas, puntos, teclado y textos accesibles en español). Mientras carga muestra esqueletos con la misma altura que el contenido real; si falla, un aviso con el botón «Reintentar».
+- **🔎 Buscador sincronizado:** el texto vive en `App` y lo comparten tres hermanos. El buscador, el botón «Quitar filtro» del banner y el «Ver toda la cartelera» del estado vacío limpian el filtro con **la misma función**.
+- **🧩 Patrón adaptador:** los datos llegan con forma de API (`poster_url`, `vote_average`, `release_date`…) y `adaptMovie` los convierte al modelo de la aplicación, para la cartelera y para los estrenos.
+- **📐 Tarjetas por fila según el ancho:** 1, 2, 3 o 4 columnas en la cartelera y diapositivas en el carrusel, con `useWindowSize`.
+
+## ▶️ Cómo ejecutarlo
+
+```powershell
+cd frontend
+npm install
+npm run dev      # http://localhost:5173/
+npm test         # 104 pruebas con Vitest y Testing Library
+npm run lint
+npm run build
+```
+
+En desarrollo se pueden forzar los estados de los estrenos para verlos (en producción se ignora):
+
+| URL | Estado |
+|-----|--------|
+| `http://localhost:5173/` | Carga de unos 1,2 s y luego el carrusel |
+| `http://localhost:5173/?estrenos=lento` | Carga de 4 s (esqueletos) |
+| `http://localhost:5173/?estrenos=error` | Error con el botón «Reintentar» |
+
+## 🪝 Hooks propios
+
+Todos viven en `frontend/src/hooks/`, empiezan por `use`, respetan las reglas de los hooks y tienen pruebas.
+
+| Hook | Qué hace | Lo usan |
+|------|----------|---------|
+| `useDebounce(value, delayMs)` | Devuelve el valor solo cuando deja de cambiar durante `delayMs` | `App` (buscador, 300 ms) y `useWindowSize` (150 ms) |
+| `useWindowSize()` | Tamaño de la ventana, actualizado al dejar de redimensionar | `MovieList` (columnas) y `PremiereCarousel` (diapositivas por vista) |
+| `usePremieres()` | Petición de estrenos: `loading` / `success` / `error`, datos adaptados, cancelación y `retry` | `PremieresSection` |
+| `useFavorites()` | Favoritas con `localStorage`, `toggleFavorite`, `isFavorite` y `favoriteCount` derivado | `App` |
+
+## 📚 Bibliotecas de interfaz
+
+| Biblioteca | Para qué | Cómo se integró |
+|------------|----------|-----------------|
+| [`react-hot-toast`](https://react-hot-toast.com/) 2.6 | Avisos al añadir (éxito) o quitar (info) una favorita | Un único `<Toaster />` en `App`, abajo a la derecha, con estilos hechos solo con los tokens de diseño. `App` llama a `toast()`; ningún componente de presentación la importa |
+| [`Swiper`](https://swiperjs.com/react) 14 | Carrusel de próximos estrenos | `Swiper` y `SwiperSlide` con los módulos `Navigation`, `Pagination`, `Keyboard` y `A11y` y sus CSS. Los colores de Swiper apuntan a los tokens, y los textos de accesibilidad están en español |
+
+## 🌳 Árbol de componentes
+
+![Árbol de componentes](Evidencias_lab11/31_paso11_arbol_componentes.png)
+
+Estado (rojo), datos derivados (azul) y fijos (gris) de cada componente; las props bajan (flechas negras) y los callbacks suben (flechas naranjas discontinuas). La explicación completa, con la tabla de cada nivel y por qué el contador no puede vivir en `Header`, está en el [paso 11 del entregable](frontend/docs/ENTREGABLE_LAB11.md#paso-11-árbol-de-componentes-y-estado-elevado).
+
+## 🌿 Rama de trabajo y Pull Request
+
+- Todo el laboratorio se desarrolló en la rama **`lab11`**, sin commits directos en `main`.
+- Al terminar, `lab11` se fusiona en `main` con un **Pull Request**, cuya descripción está en [frontend/docs/PR_LAB11.md](frontend/docs/PR_LAB11.md).
+
+## 📦 Commits del laboratorio 11
+
+| Paso | Commit |
+|------|--------|
+| 1 | `ce805d2` Configuración del laboratorio 11: CLAUDE.md, dependencias y entregable |
+| 2 | `ded89cf` Paso 2: tipografía y utilidades nuevas, y script de capturas |
+| 3 | `1f256b1` Paso 3: adaptador de películas y cartelera pasada por adaptMovies |
+| 4 | `5f47926` Paso 4: aviso emergente al marcar y desmarcar favoritas con react-hot-toast |
+| 5 | `3932982` Paso 5: hook propio useDebounce en el buscador |
+| 6 | `9a8cd87` Paso 6: hook propio useWindowSize para las tarjetas por fila |
+| 7 | `ab02631` Paso 7: hook usePremieres con estados de carga, datos y error |
+| 8 | `8bd4d76` Paso 8: esqueleto de carga y carrusel de estrenos con Swiper |
+| 9 | `f66b4c7` Paso 9: favoritas en el ancestro común con useFavorites y contador en la cabecera |
+| 10 | `7dbf6ba` Paso 10: botón del banner que limpia el filtro con buscador y listado sincronizados |
+| 11 | `84c2d62` Paso 11: árbol de componentes y explicación del estado elevado |
+| 12 | Paso 12: README, cierre del entregable y descripción del Pull Request |
+
+## 📸 Evidencias
+
+- [Entregable del laboratorio 11](frontend/docs/ENTREGABLE_LAB11.md): resumen, qué se hizo en cada paso, el código explicado, las pruebas, el uso de IA y las conclusiones.
+- [Capturas y salidas](Evidencias_lab11/): 35 evidencias numeradas por paso, tomadas con `scripts/capture.mjs` (Playwright) salvo las capturas 01, 02 y 33.
+
+| Carrusel de estrenos | Error con «Reintentar» |
+|----------------------|------------------------|
+| ![Carrusel](Evidencias_lab11/20_paso8_carrusel.png) | ![Error](Evidencias_lab11/21_paso8_error.png) |
+| **Aviso al añadir una favorita** | **Filtro activo en el banner** |
+| ![Aviso](Evidencias_lab11/07_paso4_aviso_anadida.png) | ![Filtro](Evidencias_lab11/28_paso10_filtro_activo.png) |
+
+---
+
 # Lab10: Componentes y eventos en la cartelera con React
 
 Laboratorio 10 de Desarrollo de Aplicaciones Empresariales (DAE). Continúa el laboratorio 09 sobre la cartelera **Cine Aurora**, cuya documentación se conserva más abajo, y añade componentes reutilizables, estado y eventos en `frontend/`. El backend Django del laboratorio 08 sigue en la raíz sin cambios.
