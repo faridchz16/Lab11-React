@@ -384,4 +384,5 @@ A continuación se muestran las principales evidencias del desarrollo, el funcio
 
 10. **Vista Móvil (390×844, página completa):**
     La rejilla pasa a una sola columna y la navegación se adapta al ancho del móvil.
+    
     ![Vista móvil](Evidencias_lab09/10_vista_movil.png)
