@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import toast, { Toaster } from 'react-hot-toast'
 import { apiMovies, cinema } from './data/movies.js'
 import Button from './components/Button/Button.jsx'
 import Header from './components/Header/Header.jsx'
@@ -10,6 +11,7 @@ import { useDebouncedValue } from './hooks/useDebouncedValue.js'
 import { adaptMovies } from './utils/adaptMovie.js'
 import { debugLog } from './utils/debugLog.js'
 import { loadFavoriteIds, saveFavoriteIds } from './utils/favoritesStorage.js'
+import { TOASTER_PROPS } from './utils/toastOptions.js'
 
 // Pause after the last keystroke before the search is applied.
 const SEARCH_DELAY_MS = 300
@@ -44,13 +46,26 @@ function App() {
     saveFavoriteIds(favoriteIds)
   }, [favoriteIds])
 
-  // Adds the movie when it is missing from the list and removes it otherwise.
+  // Adds the movie when it is missing from the list and removes it otherwise,
+  // then tells the user. App owns the state, so App decides how the notice looks.
   function toggleFavorite(movieId) {
+    // Read before updating: the updater below must stay pure (no side effects).
+    const wasFavorite = favoriteIds.includes(movieId)
+    const title = movies.find((movie) => movie.id === movieId)?.title ?? 'La película'
+
     setFavoriteIds((currentIds) =>
       currentIds.includes(movieId)
         ? currentIds.filter((id) => id !== movieId)
         : [...currentIds, movieId],
     )
+
+    // Same id per movie: toggling it again replaces its notice instead of stacking a new one.
+    const toastId = `favorite-${movieId}`
+    if (wasFavorite) {
+      toast(`${title} quitada de favoritas`, { id: toastId })
+    } else {
+      toast.success(`♥ ${title} añadida a favoritas`, { id: toastId })
+    }
   }
 
   return (
@@ -78,6 +93,7 @@ function App() {
         />
       </main>
       <Footer name={cinema.name} contact={cinema.contact} />
+      <Toaster {...TOASTER_PROPS} />
     </>
   )
 }

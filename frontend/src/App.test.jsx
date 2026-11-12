@@ -23,6 +23,35 @@ describe('App favorites', () => {
     expect(banner.getByText(/0 favoritas/)).toBeInTheDocument()
   })
 
+  it('shows a notice with the title when a favorite is added and when it is removed', async () => {
+    render(<App />)
+
+    await userEvent.click(favoriteButton('Ecos de Marte'))
+    const added = await screen.findByText('♥ Ecos de Marte añadida a favoritas')
+    expect(added.closest('[role="status"]')).toBeInTheDocument()
+
+    await userEvent.click(favoriteButton('Ecos de Marte'))
+    expect(
+      await screen.findByText('Ecos de Marte quitada de favoritas'),
+    ).toBeInTheDocument()
+    // The second notice replaces the first one instead of stacking.
+    expect(
+      screen.queryByText('♥ Ecos de Marte añadida a favoritas'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows one notice per movie, each with its own title', async () => {
+    render(<App />)
+
+    await userEvent.click(favoriteButton('El último faro'))
+    await userEvent.click(favoriteButton('Frontera helada'))
+
+    expect(
+      await screen.findByText('♥ El último faro añadida a favoritas'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('♥ Frontera helada añadida a favoritas')).toBeInTheDocument()
+  })
+
   it('saves favorites and restores them after a reload', async () => {
     const { unmount } = render(<App />)
     await userEvent.click(favoriteButton('El último faro'))

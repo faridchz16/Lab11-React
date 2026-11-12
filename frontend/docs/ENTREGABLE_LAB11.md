@@ -212,3 +212,126 @@ anterior, y la captura de la página completa es idéntica byte a byte a la del 
 | `npm test` | 8 archivos, 35 pruebas superadas (26 anteriores + 9 del adaptador) |
 | `npm run lint` | Sin errores ni avisos |
 | `npm run build` | Correcto: 38 módulos, JS 229.51 kB (72.13 kB gzip) |
+
+## Paso 4: Aviso emergente al marcar y desmarcar favoritas
+
+### El flujo
+
+```
+MovieCard ──onToggleFavorite(id)──▶ MovieList ──▶ App.toggleFavorite(id)
+                                                    ├─ wasFavorite = favoriteIds.includes(id)
+                                                    ├─ setFavoriteIds(updater puro)
+                                                    └─ toast.success(...) / toast(...)
+                                                              │
+                                                    <Toaster /> (montado una vez en App)
+```
+
+1. El usuario pulsa el botón de favorita de una tarjeta.
+2. `MovieCard` llama a `onToggleFavorite(id)`, igual que en el laboratorio 10. No sabe nada más.
+3. `App.toggleFavorite` comprueba si la película **ya era** favorita, actualiza el estado y lanza
+   el aviso que corresponda.
+4. El único `<Toaster />`, montado en `App` abajo a la derecha, lo muestra.
+
+### Por qué la tarjeta no conoce la biblioteca
+
+`MovieCard` es un componente de presentación: recibe `isFavorite` y avisa con
+`onToggleFavorite`. Quien tiene el estado (`App`) es quien sabe si la película se añadió o se
+quitó, así que es quien decide qué decir y cómo mostrarlo. Hay tres ventajas:
+
+- **Se puede reutilizar:** la tarjeta sirve en cualquier lugar, también donde no haga falta aviso.
+- **Se puede cambiar la biblioteca:** reemplazar `react-hot-toast` solo toca `App` y
+  `utils/toastOptions.js`.
+- **Las pruebas siguen igual:** `MovieCard.test.jsx` sigue pasando sin cambios.
+
+Se comprobó con `grep` y con `git diff`:
+
+```bash
+$ grep -rn "react-hot-toast\|toast" frontend/src/components/
+(sin resultados, código de salida 1)
+$ git diff --quiet HEAD -- frontend/src/components/MovieCard && echo "MovieCard sin cambios"
+MovieCard sin cambios
+```
+
+### El código explicado
+
+`frontend/src/App.jsx`:
+
+```js
+function toggleFavorite(movieId) {
+  const wasFavorite = favoriteIds.includes(movieId)
+  const title = movies.find((movie) => movie.id === movieId)?.title ?? 'La película'
+
+  setFavoriteIds((currentIds) =>
+    currentIds.includes(movieId)
+      ? currentIds.filter((id) => id !== movieId)
+      : [...currentIds, movieId],
+  )
+
+  const toastId = `favorite-${movieId}`
+  if (wasFavorite) {
+    toast(`${title} quitada de favoritas`, { id: toastId })
+  } else {
+    toast.success(`♥ ${title} añadida a favoritas`, { id: toastId })
+  }
+}
+```
+
+- **`wasFavorite` se calcula antes de actualizar.** No hace falta esperar al nuevo estado: si ya
+  estaba marcada, el clic la quita.
+- **La función de actualización de `setFavoriteIds` sigue siendo pura:** solo calcula la lista
+  nueva. El aviso se lanza **fuera** de ella, porque React puede ejecutar esa función dos veces
+  (en `StrictMode` lo hace a propósito) y saldrían avisos duplicados.
+- **El título** se busca en la cartelera ya adaptada (paso 3), porque la tarjeta solo envía el `id`.
+- **`id: favorite-<id>`:** si se marca y desmarca la misma película seguido, el aviso nuevo
+  reemplaza al anterior en vez de apilarse. Las películas distintas tienen avisos distintos.
+- **Tipos de aviso:**
+  - Añadir usa `toast.success` (éxito).
+  - Quitar usa `toast()`, el tipo neutro (`blank`) de la biblioteca, que aquí tiene el estilo de
+    info: `react-hot-toast` no trae un `toast.info`.
+
+`frontend/src/utils/toastOptions.js` agrupa las props del `<Toaster />`:
+`position: 'bottom-right'` y los estilos `success`, `error` y `blank`. Todos usan los tokens del
+paso 2 mediante `var(--…)`:
+- el fondo y el borde de color de cada tipo (`--color-success-bg`, `--color-info`, …);
+- `--toast-text`, `--toast-radius`, `--shadow-md`;
+- `--z-toast` para el contenedor.
+
+No hay colores escritos a mano, y el aviso queda oscuro, como el resto de la página.
+`App` lo monta con `<Toaster {...TOASTER_PROPS} />`.
+
+### Pruebas
+
+- **`App.test.jsx`** añade dos pruebas:
+  - Al pulsar «Añadir a favoritas» aparece «♥ Ecos de Marte añadida a favoritas», dentro de un
+    elemento `role="status"`. Al desmarcar aparece «Ecos de Marte quitada de favoritas» y el
+    aviso anterior desaparece.
+  - Dos películas distintas muestran dos avisos, cada uno con su título.
+- **`MovieCard.test.jsx`** pasa sin cambios.
+- **`src/test/setup.js`** se ajustó en dos puntos:
+  - jsdom no tiene `window.matchMedia`, y `react-hot-toast` lo usa para comprobar
+    `prefers-reduced-motion`, así que se añadió un sustituto **solo en las pruebas**.
+  - El almacén de avisos es global, así que se vacía con `toast.remove()` después de cada prueba
+    para que no pasen de una a otra.
+
+### Evidencias
+
+| Evidencia | Explicación |
+|-----------|-------------|
+| [07_paso4_aviso_anadida.png](../../Evidencias_lab11/07_paso4_aviso_anadida.png) | Tras pulsar «Añadir a favoritas» en *Ecos de Marte*: el aviso de éxito (verde) abajo a la derecha, el contador de la cabecera en **1 favorita** y la tarjeta marcada. |
+| [08_paso4_aviso_quitada.png](../../Evidencias_lab11/08_paso4_aviso_quitada.png) | Tras desmarcarla: el aviso de info (azul) «Ecos de Marte quitada de favoritas», el contador vuelve a **0** y la tarjeta queda sin marcar. |
+| [09_paso4_tests.txt](../../Evidencias_lab11/09_paso4_tests.txt) | Salida detallada de las pruebas: 37 superadas, incluidas las dos del aviso y las de `MovieCard` sin cambios. |
+
+Las capturas se tomaron con `capture.mjs`: hace clic en el botón de la tarjeta y espera con
+`--wait-text` a que aparezca el texto del aviso. No hizo falta tocar el código de la aplicación
+para forzar el aviso. La consola no mostró errores ni avisos.
+
+![Aviso al añadir](../../Evidencias_lab11/07_paso4_aviso_anadida.png)
+![Aviso al quitar](../../Evidencias_lab11/08_paso4_aviso_quitada.png)
+
+### Resultados
+
+| Comando | Resultado |
+|---------|-----------|
+| `npm test` | 8 archivos, 37 pruebas superadas (35 anteriores + 2 del aviso) |
+| `npm run lint` | Sin errores ni avisos |
+| `npm run build` | Correcto: 41 módulos, JS 242.68 kB (77.01 kB gzip); `react-hot-toast` añade unos 13 kB (5 kB gzip) |
