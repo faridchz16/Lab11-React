@@ -335,3 +335,108 @@ para forzar el aviso. La consola no mostró errores ni avisos.
 | `npm test` | 8 archivos, 37 pruebas superadas (35 anteriores + 2 del aviso) |
 | `npm run lint` | Sin errores ni avisos |
 | `npm run build` | Correcto: 41 módulos, JS 242.68 kB (77.01 kB gzip); `react-hot-toast` añade unos 13 kB (5 kB gzip) |
+
+## Paso 5: Hook propio `useDebounce`
+
+### Qué es el debounce
+
+*Debounce* significa esperar a que algo **deje de cambiar** durante un tiempo antes de reaccionar.
+Al escribir «faro» se producen cuatro cambios seguidos (`f`, `fa`, `far`, `faro`). Sin debounce,
+la cartelera se filtraría cuatro veces. Con debounce de 300 ms, cada pulsación reinicia la espera
+y la cartelera se filtra **una sola vez**, con `faro`, cuando el usuario hace una pausa.
+
+### El código, línea por línea
+
+`frontend/src/hooks/useDebounce.js`:
+
+```js
+import { useEffect, useState } from 'react'                       // 1
+
+export function useDebounce(value, delayMs) {                     // 2
+  const [debouncedValue, setDebouncedValue] = useState(value)     // 3
+
+  useEffect(() => {                                               // 4
+    const timerId = setTimeout(() => setDebouncedValue(value), delayMs) // 5
+    return () => clearTimeout(timerId)                            // 6
+  }, [value, delayMs])                                            // 7
+
+  return debouncedValue                                           // 8
+}
+```
+
+1. Importa los dos hooks de React que usa. Un hook propio no es más que una función que combina
+   otros hooks.
+2. El nombre empieza por `use`, así React (y la regla `react-hooks` de ESLint) lo trata como hook.
+   Recibe el valor que cambia y la espera en milisegundos. Es genérico: sirve para texto, números
+   u objetos.
+3. Guarda el valor «calmado» en su propio estado. Empieza con el valor actual, así que el primer
+   render no espera nada.
+4. El efecto se ejecuta después de cada render en que cambió `value` o `delayMs`.
+5. Programa la actualización para dentro de `delayMs`. Si nada lo cancela, el estado pasa a ser
+   el último `value`.
+6. **La limpieza.** React la ejecuta antes de volver a correr el efecto y al desmontar el
+   componente. Cada cambio nuevo cancela el temporizador anterior, así que de una ráfaga solo
+   sobrevive el último. Al desmontar no queda ningún temporizador pendiente que actualice un
+   componente que ya no existe.
+7. Dependencias: todo lo que el efecto lee de fuera (`value`, `delayMs`). Si cambia la espera, el
+   temporizador también se reinicia.
+8. Devuelve el valor con retardo. Quien llama decide qué hacer con él.
+
+**Reglas de los hooks:**
+- `useState` y `useEffect` se llaman siempre, en el mismo orden y en el nivel superior del hook.
+  No hay condiciones, bucles ni funciones anidadas.
+- `App` llama a `useDebounce` también en el nivel superior.
+- `npm run lint` (con `eslint-plugin-react-hooks`) no da avisos.
+
+### Uso en el buscador
+
+`App.jsx` sigue aplicando el retardo, ahora con el hook nuevo:
+
+```js
+const debouncedText = useDebounce(searchText, SEARCH_DELAY_MS)  // 300 ms
+// Emptying the box is not a typing burst: the full list comes back at once.
+const searchQuery = searchText === '' ? '' : debouncedText
+```
+
+Se mantiene el comportamiento del Lab 10: al borrar el texto, o al pulsar «Limpiar» o «Ver toda
+la cartelera», la lista completa vuelve **al instante**, sin esperar los 300 ms. Lo comprueban
+las pruebas de `App.test.jsx` que ya existían: tras limpiar, esperan las 8 tarjetas enseguida,
+sin `waitFor`.
+
+### Diferencia con el Lab 10
+
+| | Lab 10: `useDebouncedValue` | Lab 11: `useDebounce` |
+|---|---|---|
+| Nombre | `useDebouncedValue` | `useDebounce`, el que pide la guía |
+| Lógica | `useState` + `useEffect` con `setTimeout` y `clearTimeout` | La misma, comentada línea a línea |
+| Pruebas | 2: retardo y ráfaga | 5: valor inicial inmediato, retardo exacto, ráfaga con **una sola** actualización (se registra cada valor devuelto), cambio de espera y limpieza al desmontar |
+| Uso | Solo el buscador | El buscador, y en el paso 6 también `useWindowSize` |
+
+La lógica del Lab 10 ya era correcta, así que el cambio es de nombre, documentación y pruebas, no
+de comportamiento. `useDebouncedValue.js` y su prueba se eliminaron, y `grep` no encuentra
+ninguna referencia en `src/`. Git los registra como borrado + archivo nuevo, no como renombrado,
+porque los comentarios y las pruebas nuevas cambian demasiado el contenido. El código anterior
+sigue en el historial del laboratorio 10. Como prueba de que las pruebas nuevas sirven, se quitó temporalmente la línea 6 (la
+limpieza): fallaron la de la ráfaga y la del desmontaje. Después se restauró.
+
+> **Paso 6:** `useWindowSize` también usará `useDebounce`, para no recalcular las columnas en cada
+> evento `resize`. Así el hook se usa en más de un sitio, como pide la guía («el hook se usa en
+> más de un componente»).
+
+### Evidencias
+
+| Evidencia | Explicación |
+|-----------|-------------|
+| [10_paso5_busqueda_faro.png](../../Evidencias_lab11/10_paso5_busqueda_faro.png) | Página completa tras escribir «faro» letra a letra (120 ms por tecla): el buscador muestra `faro` y la cartelera, «1 de 8 películas para «faro»», con solo *El último faro*. |
+| [11_paso5_consola.txt](../../Evidencias_lab11/11_paso5_consola.txt) | Consola del navegador durante la búsqueda: **4 pulsaciones** (`f`, `fa`, `far`, `faro`) y **un solo filtrado** (`filtered "faro": 1 movies`). Las dos líneas `filtered ""` del principio son el montaje inicial; salen dos porque `StrictMode` monta dos veces en desarrollo. |
+| [12_paso5_tests.txt](../../Evidencias_lab11/12_paso5_tests.txt) | Salida detallada de las pruebas: 40 superadas, 5 de ellas de `useDebounce`. |
+
+![Búsqueda de faro](../../Evidencias_lab11/10_paso5_busqueda_faro.png)
+
+### Resultados
+
+| Comando | Resultado |
+|---------|-----------|
+| `npm test` | 8 archivos, 40 pruebas superadas (37 anteriores − 2 de `useDebouncedValue` + 5 de `useDebounce`) |
+| `npm run lint` | Sin errores ni avisos |
+| `npm run build` | Correcto: 41 módulos, JS 242.68 kB (77.01 kB gzip), el mismo tamaño que en el paso 4 |

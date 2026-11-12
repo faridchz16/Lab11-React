@@ -7,7 +7,7 @@ import Footer from './components/Footer/Footer.jsx'
 import Hero from './components/Hero/Hero.jsx'
 import MovieList from './components/MovieList/MovieList.jsx'
 import MovieSearch from './components/MovieSearch/MovieSearch.jsx'
-import { useDebouncedValue } from './hooks/useDebouncedValue.js'
+import { useDebounce } from './hooks/useDebounce.js'
 import { adaptMovies } from './utils/adaptMovie.js'
 import { debugLog } from './utils/debugLog.js'
 import { loadFavoriteIds, saveFavoriteIds } from './utils/favoritesStorage.js'
@@ -29,7 +29,7 @@ function App() {
   // Lazy initializer: localStorage is read once, not on every render.
   const [favoriteIds, setFavoriteIds] = useState(loadFavoriteIds)
   const [searchText, setSearchText] = useState('')
-  const debouncedText = useDebouncedValue(searchText, SEARCH_DELAY_MS)
+  const debouncedText = useDebounce(searchText, SEARCH_DELAY_MS)
   // Emptying the box is not a typing burst: the full list comes back at once.
   const searchQuery = searchText === '' ? '' : debouncedText
 
