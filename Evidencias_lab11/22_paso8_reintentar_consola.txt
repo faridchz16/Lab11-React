@@ -1,0 +1,8 @@
+# Console of http://localhost:5173/?estrenos=error (1440x900)
+[debug] [vite] connecting...
+[debug] [vite] connected.
+[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[log] [search] filtered "": 8 movies
+[log] [search] filtered "": 8 movies
+[log] CHECK alert=true busy=false skeletons=0
+[log] CHECK alert=false busy=true skeletons=4

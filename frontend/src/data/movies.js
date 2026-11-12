@@ -89,6 +89,7 @@ export const apiMovies = [
 export const cinema = {
   name: 'Cine Aurora',
   navLinks: [
+    { id: 'estrenos', label: 'Estrenos', href: '#estrenos' },
     { id: 'cartelera', label: 'Cartelera', href: '#cartelera' },
     { id: 'horarios', label: 'Horarios', href: '#horarios' },
     { id: 'contacto', label: 'Contacto', href: '#contacto' },

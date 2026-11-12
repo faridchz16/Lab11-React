@@ -1,0 +1,30 @@
+/* The shimmer, colors and reduced-motion fallback come from the global .skeleton utility. */
+
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--color-surface);
+  border: thin solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+/* Same 2:3 shape as a real poster, so the layout does not jump when the data arrives. */
+.skeleton-card__poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 0;
+}
+
+.skeleton-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+/* The blocks sit on the card surface, so they use a lighter tone to stand out from it. */
+.skeleton-card .skeleton {
+  --skeleton-base: var(--color-surface-alt);
+  --skeleton-highlight: var(--color-border);
+}

@@ -804,3 +804,263 @@ siguen pasando sin tocarlas.
 | `npm test` | 13 archivos, 77 pruebas superadas (58 anteriores + 19 nuevas) |
 | `npm run lint` | Sin errores ni avisos |
 | `npm run build` | Correcto: 43 módulos, JS 243.49 kB (77.34 kB gzip). Los estrenos aún no se usan en pantalla, así que todavía no entran en el bundle |
+
+## Paso 8: Esqueleto de carga y carrusel de estrenos con Swiper
+
+### Qué se construyó
+
+```
+App
+├─ Hero
+├─ PremieresSection        ← usePremieres() (estado de la petición)
+│   ├─ loading → SkeletonCard ×4 (+ texto «Cargando estrenos…» para lectores)
+│   ├─ error   → mensaje role="alert" + Button «Reintentar» → retry()
+│   └─ success → PremiereCarousel premieres={…}   ← useWindowSize() → diapositivas por vista
+└─ MovieList
+```
+
+Además, `Header` tiene un enlace nuevo, «Estrenos» (`#estrenos`). Se añadió como primer elemento
+de `cinema.navLinks` en `data/movies.js`, porque la sección va antes que la cartelera. El
+componente `Header` no cambió.
+
+### La biblioteca integrada: Swiper
+
+Se usa **Swiper 14** (instalado en el paso 1) con su paquete para React:
+
+```js
+import { A11y, Keyboard, Navigation, Pagination } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import 'swiper/css'
+import 'swiper/css/a11y'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
+```
+
+- **`Swiper` y `SwiperSlide`:** el contenedor y cada diapositiva.
+- **Módulos:** Swiper solo incluye lo que se le pide.
+  - `Navigation` pone las flechas.
+  - `Pagination` pone los puntos; con `clickable` se puede pulsar cada uno.
+  - `Keyboard` permite moverse con las flechas del teclado.
+  - `A11y` pone los textos para lectores de pantalla.
+- **CSS:** cada módulo trae su hoja de estilos y se importa la de cada uno que se usa.
+- **Colores y tamaños:** Swiper lee variables CSS (`--swiper-theme-color`,
+  `--swiper-navigation-color`, `--swiper-pagination-color`, …). `PremiereCarousel.css` les asigna
+  los tokens del paso 2, así que la biblioteca usa la paleta del cine sin colores escritos a mano.
+- **Textos en español:** van en la opción `a11y`.
+
+Comprobado en el navegador:
+
+```
+CHECK bullets=Ir al estreno 1 | Ir al estreno 2 | Ir al estreno 3
+CHECK region=carrusel / slide1=1 de 6 / index=0
+CHECK tras ArrowRight index=1
+```
+
+Las flechas se anuncian como «Estreno anterior» y «Estreno siguiente»; lo comprueba también una
+prueba. Cada diapositiva se anuncia como «1 de 6», y la tecla → avanza una diapositiva.
+
+**Coste en tamaño:** Swiper y sus estilos llevan el JS de 243 a 350 kB (de 77 a 109 kB comprimido)
+y el CSS de 11 a 28 kB. Es el precio de un carrusel accesible, con gestos táctiles y teclado,
+sin escribirlo a mano.
+
+### `Skeleton` y `SkeletonCard`
+
+```jsx
+function Skeleton({ width, height, className = '' }) {
+  return (
+    <span className={`skeleton ${className}`.trim()} style={{ width, height }} aria-hidden="true" />
+  )
+}
+
+function SkeletonCard() {
+  return (
+    <div className="skeleton-card" aria-hidden="true">
+      <Skeleton className="skeleton-card__poster" />
+      <div className="skeleton-card__body">
+        <Skeleton className="skeleton-text" width="75%" />
+        <Skeleton className="skeleton-text" width="45%" />
+      </div>
+    </div>
+  )
+}
+```
+
+- **`Skeleton`** es el bloque básico y se puede reutilizar:
+  - Usa la utilidad `.skeleton` del paso 2: los tokens `--skeleton-*`, la animación `shimmer`, y
+    sin animación con `prefers-reduced-motion`.
+  - El tamaño llega por props, así sirve para líneas, avatares o bloques.
+- **`SkeletonCard`** compone tres `Skeleton` con la forma de una tarjeta. El póster tiene la misma
+  proporción 2:3 que los reales, así que la página no salta cuando llegan los datos.
+- **Son decorativos (`aria-hidden="true"`).** Un lector de pantalla no debe leer bloques grises.
+  Lo que oye es el texto que pone quien los usa («Cargando estrenos…»).
+- **Están en la misma carpeta** (`components/Skeleton/`): son el componente y su variante, y
+  comparten `Skeleton.css`.
+
+### `PremiereCarousel`
+
+```jsx
+function PremiereCarousel({ premieres }) {
+  const { width } = useWindowSize()
+  const slidesPerView = columnsForWidth(width)
+
+  return (
+    <Swiper modules={[Navigation, Pagination, Keyboard, A11y]} slidesPerView={slidesPerView}
+            spaceBetween={24} navigation pagination={{ clickable: true }}
+            keyboard={{ enabled: true }} a11y={A11Y_TEXTS} watchOverflow>
+      {premieres.map(({ id, title, image, releaseDate }) => (
+        <SwiperSlide key={id}>
+          <img src={image} alt={`Póster de ${title}`} … />
+          <h3>{title}</h3>
+          <p>Estreno: <time dateTime={releaseDate}>{formatReleaseDate(releaseDate)}</time></p>
+        </SwiperSlide>
+      ))}
+    </Swiper>
+  )
+}
+```
+
+- **Es de presentación:** recibe `premieres` ya adaptados (`image`, `releaseDate`) y no sabe de
+  dónde vienen ni si hubo error.
+- **Diapositivas por vista:** con `useWindowSize` + `columnsForWidth`, las **mismas** reglas que
+  la cartelera: 1, 2, 3 o 4 según el ancho. Así `useWindowSize` se reutiliza en `MovieList` y en
+  el carrusel. Cuando cambia el ancho, Swiper recibe el nuevo `slidesPerView` y se recoloca.
+- **`watchOverflow`** oculta las flechas y los puntos si caben todas las diapositivas.
+- **La fecha** pasa por `formatReleaseDate` (`utils/`), que usa `Intl.DateTimeFormat('es')` en
+  UTC: `2026-12-18` → «18 de diciembre», sin que el día cambie por la zona horaria. Va en un
+  `<time dateTime="2026-12-18">`, así que la máquina lee la fecha ISO y la persona, el texto.
+- **Las diapositivas son `<div>`, no `<article>`.** Las pruebas de `App` cuentan los `article`
+  para saber cuántas películas de la cartelera se ven, y los estrenos no deben sumarse ahí.
+
+### `PremieresSection`
+
+```jsx
+function PremieresSection() {
+  const { status, premieres, error, retry } = usePremieres()
+
+  return (
+    <section id="estrenos" aria-labelledby="premieres-title" aria-busy={status === 'loading'}>
+      <h2 id="premieres-title">Próximos estrenos</h2>
+
+      {status === 'loading' && (<>
+        <p className="visually-hidden" role="status">Cargando estrenos…</p>
+        <div className="grid premieres__skeletons">{/* 4 × <SkeletonCard /> */}</div>
+      </>)}
+
+      {status === 'error' && (
+        <div className="premieres__error">
+          <div role="alert">
+            <p>No pudimos cargar los estrenos</p>
+            <p>{error}. Revisa tu conexión e inténtalo de nuevo en unos segundos.</p>
+          </div>
+          <Button variant="secondary" onClick={retry}>Reintentar</Button>
+        </div>
+      )}
+
+      {status === 'success' && <PremiereCarousel premieres={premieres} />}
+    </section>
+  )
+}
+```
+
+- **Un bloque por estado:** solo se pinta uno, según `status`.
+- **Mientras carga:**
+  - `aria-busy="true"` avisa a los lectores de que la región se está actualizando.
+  - El texto oculto con `role="status"` anuncia «Cargando estrenos…».
+  - Se pintan 4 `SkeletonCard`, pero se ve solo la primera fila: el CSS usa los mismos cortes
+    que `columnsForWidth` (1 en móvil, 2 en tableta, 4 en escritorio), así que se reserva el mismo
+    hueco que ocupará el carrusel.
+- **Con error:**
+  - El mensaje del hook va dentro de `role="alert"`, que el lector anuncia en cuanto aparece,
+    junto con una sugerencia de qué hacer.
+  - El botón está **fuera** del `alert`: el aviso lee el mensaje, no «Reintentar».
+  - Se reutiliza `Button` del Lab 10, y su `onClick` es directamente `retry` del hook.
+- **Con datos:** se monta el carrusel.
+
+### Por qué los estrenos viven en la sección y no en `App`
+
+La regla del laboratorio es que **el estado sube solo hasta el ancestro común que lo necesita**:
+
+- **`favoriteIds` vive en `App`** porque lo usan dos ramas distintas: `Header` (el contador) y
+  `MovieCard` (el botón).
+- **Los estrenos solo los usa `PremieresSection`** y lo que hay dentro de ella. Ningún otro
+  componente necesita saber si están cargando, si fallaron o cuáles son. Su ancestro común es la
+  propia sección.
+
+Subirlos a `App` tendría tres costes:
+- `App` volvería a dibujarse entera, con la cartelera incluida, cada vez que cambiara el estado de
+  la petición.
+- Habría que pasar `status`, `premieres`, `error` y `retry` por props sin que `App` los use.
+- `App` crecería con lógica que no le corresponde.
+
+Así, `App` solo monta `<PremieresSection />`, sin props, y la sección es autónoma: se puede mover
+o quitar sin tocar nada más.
+
+### Estado → qué ve el usuario
+
+Capturas de la parte visible a 1440x900, desplazadas hasta la sección. Los estados de carga y
+error se fuerzan con el modo de simulación del paso 7, que solo existe en desarrollo.
+
+| Estado | URL | Qué ve el usuario | Qué oye un lector de pantalla | Captura |
+|--------|-----|-------------------|-------------------------------|---------|
+| `loading` | `/?estrenos=lento` | Título y 4 tarjetas grises con brillo en movimiento | «Cargando estrenos…»; región ocupada (`aria-busy="true"`) | [19_paso8_cargando.png](../../Evidencias_lab11/19_paso8_cargando.png) |
+| `success` | `/` | Carrusel con 4 estrenos a la vista, flecha «siguiente» y 3 puntos; cada uno con póster, título y fecha («27 de noviembre») | «Carrusel de próximos estrenos», «1 de 6», «Estreno siguiente», «Ir al estreno 2» | [20_paso8_carrusel.png](../../Evidencias_lab11/20_paso8_carrusel.png) |
+| `error` | `/?estrenos=error` | Recuadro rojo: «No pudimos cargar los estrenos», el mensaje del servidor, la sugerencia y el botón «Reintentar» | El aviso completo, en cuanto aparece (`role="alert"`) | [21_paso8_error.png](../../Evidencias_lab11/21_paso8_error.png) |
+| `error` → `loading` | `/?estrenos=error` + clic en «Reintentar» | Vuelven los esqueletos: la petición se repite | «Cargando estrenos…» | [22_paso8_reintentar.png](../../Evidencias_lab11/22_paso8_reintentar.png) |
+| `success` en móvil | `/` a 390 px | Una diapositiva por vista, flecha a la derecha y 6 puntos | Igual que en escritorio | [23_paso8_carrusel_movil.png](../../Evidencias_lab11/23_paso8_carrusel_movil.png) |
+
+La captura 22 se ve igual que la 19 a propósito, porque muestra la carga. Para demostrar que viene
+de pulsar «Reintentar», el script registró el estado antes y después del clic en
+[22_paso8_reintentar_consola.txt](../../Evidencias_lab11/22_paso8_reintentar_consola.txt):
+
+```
+CHECK alert=true busy=false skeletons=0     ← antes del clic: error
+CHECK alert=false busy=true skeletons=4     ← después del clic: cargando
+```
+
+Con `?estrenos=error`, el reintento vuelve a fallar, como un servidor caído. La prueba de
+`usePremieres` (paso 7) comprueba el caso en que el reintento sí funciona.
+
+![Cargando](../../Evidencias_lab11/19_paso8_cargando.png)
+![Carrusel](../../Evidencias_lab11/20_paso8_carrusel.png)
+![Error](../../Evidencias_lab11/21_paso8_error.png)
+![Reintentar](../../Evidencias_lab11/22_paso8_reintentar.png)
+![Carrusel en móvil](../../Evidencias_lab11/23_paso8_carrusel_movil.png)
+
+### Hook → dónde se usa (actualizada)
+
+| Hook | Dónde se usa | Para qué |
+|------|--------------|----------|
+| `useDebounce` | `App` (buscador) | Aplica el texto de búsqueda 300 ms después de la última tecla |
+| `useDebounce` | `useWindowSize` | Entrega el tamaño de la ventana 150 ms después del último `resize` |
+| `useWindowSize` | `MovieList` | Columnas de la cartelera (`--columns`) |
+| `useWindowSize` | `PremiereCarousel` | Diapositivas visibles a la vez (`slidesPerView`) |
+| `usePremieres` | `PremieresSection` | Estado de la petición de estrenos: `loading`, `success` o `error`, y `retry` |
+
+### Pruebas
+
+| Archivo | Pruebas |
+|---------|---------|
+| `PremieresSection.test.jsx` (6, nuevo) | `usePremieres` se sustituye con `vi.mock` para fijar cada estado. **Cargando:** `aria-busy="true"`, `role="status"` con «Cargando estrenos…», 4 `SkeletonCard` con `aria-hidden`, sin alerta ni imágenes. **Error:** `role="alert"` con el título, el mensaje del hook y la sugerencia; `aria-busy="false"`; el botón «Reintentar» llama a `retry` una vez. **Datos:** los 6 títulos como encabezados, sus pósters, la fecha «27 de noviembre» con `datetime="2026-11-27"`, y las flechas de Swiper con `aria-label` en español |
+| `formatReleaseDate.test.js` (3, nuevo) | «12 de diciembre», «8 de enero»; primer y último día del mes sin desfase de zona horaria; texto vacío si la fecha falta o no es válida |
+
+### Problemas encontrados al revisar las capturas
+
+- En la primera captura de la carga, los esqueletos salían aplastados a una línea. `grid-auto-rows: 0`
+  (pensado para ocultar las filas sobrantes) también se aplicaba a la primera fila, porque no estaba
+  declarada. Se corrigió con `grid-template-rows: auto`.
+- En móvil asomaba el borde de la segunda tarjeta por debajo de la primera. El hueco inferior era
+  un `padding`, que queda **dentro** de la caja recortada. Se cambió por `margin`.
+
+Ambos se vieron solo en las capturas: las pruebas de jsdom no calculan la maquetación.
+
+### Resultados
+
+| Comando | Resultado |
+|---------|-----------|
+| `npm test` | 15 archivos, 86 pruebas superadas (77 anteriores + 9 nuevas) |
+| `npm run lint` | Sin errores ni avisos |
+| `npm run build` | Correcto: 93 módulos; JS 350.35 kB (109.49 kB gzip), CSS 27.59 kB (5.09 kB gzip) |
+
+| Evidencia | Explicación |
+|-----------|-------------|
+| [24_paso8_tests.txt](../../Evidencias_lab11/24_paso8_tests.txt) | Salida detallada de las pruebas: 86 superadas |

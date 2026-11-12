@@ -7,6 +7,7 @@ import Footer from './components/Footer/Footer.jsx'
 import Hero from './components/Hero/Hero.jsx'
 import MovieList from './components/MovieList/MovieList.jsx'
 import MovieSearch from './components/MovieSearch/MovieSearch.jsx'
+import PremieresSection from './components/PremieresSection/PremieresSection.jsx'
 import { useDebounce } from './hooks/useDebounce.js'
 import { adaptMovies } from './utils/adaptMovie.js'
 import { debugLog } from './utils/debugLog.js'
@@ -84,6 +85,8 @@ function App() {
           />
           <Button href="#cartelera">Ver cartelera</Button>
         </Hero>
+        {/* Owns its own data (usePremieres): App keeps no premieres state. */}
+        <PremieresSection />
         <MovieList
           movies={movies}
           query={searchQuery}
