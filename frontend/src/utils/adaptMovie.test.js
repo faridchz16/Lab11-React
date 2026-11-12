@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { apiMovies } from '../data/movies.js'
+import { apiPremieres } from '../data/premieres.js'
 import { UNKNOWN_CLASSIFICATION, adaptMovie, adaptMovies } from './adaptMovie.js'
 
 const APP_FIELDS = ['classification', 'id', 'image', 'rating', 'showtimes', 'synopsis', 'title']
@@ -75,6 +76,34 @@ describe('adaptMovie', () => {
       '14:30',
       '17:00',
     ])
+  })
+})
+
+describe('adaptMovie with release dates (premieres)', () => {
+  it('maps release_date to releaseDate', () => {
+    const adapted = adaptMovie({ ...apiMovie, release_date: '2026-12-04' })
+    expect(adapted.releaseDate).toBe('2026-12-04')
+    expect(adapted).not.toHaveProperty('release_date')
+  })
+
+  it('leaves releaseDate out when the API sends no date, so the billboard model is unchanged', () => {
+    expect(adaptMovie(apiMovie)).not.toHaveProperty('releaseDate')
+  })
+
+  it('leaves out dates that are not real YYYY-MM-DD days', () => {
+    for (const value of ['2026-02-30', '04/12/2026', '2026-12-4', '', null, 20261204]) {
+      expect(adaptMovie({ ...apiMovie, release_date: value })).not.toHaveProperty('releaseDate')
+    }
+  })
+
+  it('adapts all the premieres with their dates', () => {
+    const premieres = adaptMovies(apiPremieres)
+
+    expect(premieres).toHaveLength(6)
+    premieres.forEach((movie, index) => {
+      expect(movie.releaseDate).toBe(apiPremieres[index].release_date)
+      expect(movie.image).toBe(apiPremieres[index].poster_url)
+    })
   })
 })
 

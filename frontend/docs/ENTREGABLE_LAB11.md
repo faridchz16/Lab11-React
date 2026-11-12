@@ -594,3 +594,213 @@ CHECK innerWidth=390  --columns=1 tracks=1
 | `npm test` | 11 archivos, 58 pruebas superadas (40 anteriores + 18 nuevas) |
 | `npm run lint` | Sin errores ni avisos |
 | `npm run build` | Correcto: 43 módulos, JS 243.26 kB (77.22 kB gzip), CSS 10.96 kB |
+
+## Paso 7: Hook `usePremieres` con estados de carga, datos y error
+
+Este paso prepara los datos de los estrenos. Todavía no muestra nada en pantalla: eso llega en el
+paso 8.
+
+### Piezas nuevas
+
+| Archivo | Qué es |
+|---------|--------|
+| `src/data/premieres.js` | 6 estrenos ficticios en el **mismo formato de API** del paso 3 (`poster_url`, `overview`, `certification`, `vote_average`, `show_times`) más `release_date` (`YYYY-MM-DD`). Los `id` empiezan en 101 para no chocar con los de la cartelera, porque las favoritas se guardan por `id`. `vote_average` es 0 porque aún no se han estrenado. |
+| `public/posters/*.svg` | 6 pósters nuevos (`marea-de-neon`, `el-ultimo-tren-a-orion`, `la-biblioteca-sumergida`, `cometa-de-papel`, `bajo-la-luna-roja`, `las-dunas-que-hablan`) con el estilo de los existentes: 300x450, degradado vertical, una figura sencilla y el título en dos líneas |
+| `src/services/premieresService.js` | `fetchPremieres({ delayMs, shouldFail })`: simula la petición al servidor |
+| `src/hooks/usePremieres.js` | El hook: pide los datos, los adapta y expone el estado |
+| `src/utils/adaptMovie.js` | Ampliado con `release_date` → `releaseDate` |
+
+### Los 3 estados
+
+| `status` | Cuándo | `premieres` | `error` |
+|----------|--------|-------------|---------|
+| `'loading'` | Al montar, y al pulsar reintentar (`retry`) | `[]` | `null` |
+| `'success'` | La petición respondió con datos | Los 6 estrenos, **ya adaptados** al modelo de la app | `null` |
+| `'error'` | La petición falló | `[]` | El mensaje para el usuario: «No se pudo conectar con el servidor de estrenos» |
+
+Los tres valores viven en **un solo objeto de estado**, así que cambian juntos y nunca puede
+quedar, por ejemplo, `status: 'success'` con un `error` del intento anterior. El hook devuelve
+además `retry`.
+
+### El servicio
+
+```js
+export function fetchPremieres({ delayMs = DEFAULT_DELAY_MS, shouldFail = false } = {}) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (shouldFail) reject(new Error(PREMIERES_ERROR_MESSAGE))
+      else resolve(structuredClone(apiPremieres))
+    }, delayMs)
+  })
+}
+```
+
+Devuelve una `Promise`, como haría `fetch`. Tras el retardo (1,2 s por defecto), rechaza con un
+`Error` de mensaje claro o resuelve con los datos **en formato de API**. Adaptarlos no es tarea
+del servicio. Cada respuesta es una copia (`structuredClone`), como si llegara por la red, para
+que nadie pueda modificar los datos de origen.
+
+### El código del hook explicado
+
+```js
+const LOADING = { status: 'loading', premieres: [], error: null }
+
+export function usePremieres({ delayMs, shouldFail } = simulationFromUrl()) {   // 1
+  const [request, setRequest] = useState(LOADING)                              // 2
+  const [attempt, setAttempt] = useState(0)                                    // 3
+
+  useEffect(() => {
+    let ignore = false                                                         // 4
+
+    fetchPremieres({ delayMs, shouldFail }).then(                              // 5
+      (data) => {
+        if (!ignore) setRequest({ status: 'success', premieres: adaptMovies(data), error: null })
+      },
+      (error) => {
+        const message = error?.message || PREMIERES_ERROR_MESSAGE
+        if (!ignore) setRequest({ status: 'error', premieres: [], error: message })
+      },
+    )
+
+    return () => { ignore = true }                                             // 6
+  }, [delayMs, shouldFail, attempt])                                           // 7
+
+  function retry() {                                                           // 8
+    setRequest(LOADING)
+    setAttempt((current) => current + 1)
+  }
+
+  return { ...request, retry }                                                 // 9
+}
+```
+
+1. **Opciones:** el hook las recibe y, si no se le pasan, usa la simulación leída de la URL (ver
+   más abajo). Se desestructuran en valores simples (`delayMs`, `shouldFail`) para que las
+   dependencias del efecto no cambien en cada render, como pasaría con un objeto nuevo.
+2. **Estado de la petición:** un solo objeto que empieza en `loading`.
+3. **`attempt`** es un contador. Cambiarlo es la forma de pedir al efecto que repita la petición.
+4. **La bandera de cancelación** de esta petición en concreto (ver el apartado siguiente).
+5. **La petición** es asíncrona. Cuando responde, los datos pasan por `adaptMovies`, el mismo
+   adaptador de la cartelera: el componente recibirá `image`, `synopsis` y `releaseDate`, nunca
+   `poster_url` ni `release_date`. Si el error no trae mensaje, se usa uno claro.
+6. **La limpieza** marca la petición como obsoleta.
+7. **Dependencias:** se pide de nuevo si cambian las opciones o al reintentar.
+8. **`retry`** es un manejador de eventos, no un efecto. Vuelve a `loading` enseguida, con lo que
+   la interfaz responde al clic sin esperar, y sube `attempt` para que el efecto repita la
+   petición. Poner `setRequest(LOADING)` dentro del efecto sería una actualización síncrona en un
+   efecto, que React desaconseja porque provoca un render extra.
+9. **Devuelve** el estado y `retry`.
+
+**Reglas de los hooks:**
+- `useState` (dos veces) y `useEffect` se llaman siempre, en el mismo orden y en el nivel
+  superior.
+- Las llamadas a `setRequest` están en las funciones de la promesa y en `retry`, no en el cuerpo
+  del componente.
+- `npm run lint` (`eslint-plugin-react-hooks` 7) no da avisos.
+
+### Por qué hace falta la bandera de cancelación
+
+Una petición no se puede «deshacer»: el `setTimeout` (o un `fetch` real) responde aunque ya no
+interese. Sin la bandera, esa respuesta tardía actualizaría el estado igualmente. Pasa en dos
+casos:
+
+1. **Una petición vieja que llega tarde.** Si se reintenta o cambian las opciones mientras hay
+   una petición en curso, quedan dos peticiones vivas y pueden responder **en cualquier orden**.
+   Si la vieja llega última, pisaría los datos buenos de la nueva con datos o errores antiguos.
+   Al cambiar las dependencias, la limpieza del efecto anterior pone su `ignore = true`, así que
+   solo cuenta la respuesta de la petición más reciente.
+2. **El componente se desmontó.** La respuesta llega cuando ya no hay nada que actualizar. Desde
+   React 18 esto no da error, pero sería trabajo inútil: adaptar datos para un componente que ya
+   no existe.
+
+Las dos pruebas que lo comprueban se verificaron quitando las comprobaciones `if (!ignore)`:
+**fallan sin la bandera y pasan con ella**. Una primera versión de la prueba del desmontaje
+pasaba siempre, porque React 18 ignora esas actualizaciones sin avisar. Se reescribió para
+comprobar que la respuesta tardía no llega a adaptarse.
+
+### Modo de simulación (solo en desarrollo)
+
+Los estados de carga y error duran poco o no ocurren nunca con datos locales. Para poder verlos y
+capturarlos, la URL los fuerza:
+
+| URL | Efecto en desarrollo |
+|-----|----------------------|
+| `http://localhost:5173/` | Carga normal de unos 1,2 s y luego datos |
+| `http://localhost:5173/?estrenos=lento` | La carga dura 4 s |
+| `http://localhost:5173/?estrenos=error` | La petición falla. Reintentar vuelve a fallar, como un servidor caído |
+
+```js
+export function readSimulation(search, isDev) {
+  if (!isDev) return {}
+  const mode = new URLSearchParams(search).get('estrenos')
+  if (mode === 'error') return { shouldFail: true }
+  if (mode === 'lento') return { delayMs: SLOW_DELAY_MS }
+  return {}
+}
+
+export function simulationFromUrl() {
+  return import.meta.env.DEV ? readSimulation(window.location.search, true) : {}
+}
+```
+
+- **`readSimulation`** es una función pura: recibe la URL y el modo. Así se prueba con cualquier
+  combinación, incluida «producción».
+- **`simulationFromUrl`** la conecta con la página. Un valor desconocido (`?estrenos=otro`) se
+  ignora.
+
+### Por qué no afecta a producción
+
+- **Vite sustituye `import.meta.env.DEV` por una constante** al compilar: `true` con
+  `npm run dev` y `false` con `npm run build`. En producción la expresión queda como
+  `false ? readSimulation(...) : {}`. El minificador la reduce a `{}` y elimina `readSimulation`,
+  porque nada más la usa. Aunque alguien escriba `?estrenos=error` en la web publicada, la
+  petición es la normal.
+- **Se comprobó en un build real.** El build actual todavía no incluye los estrenos, porque nada
+  los usa hasta el paso 8 y el empaquetador los descarta. Por eso se hizo un build temporal que
+  sí llama a `fetchPremieres(simulationFromUrl())`, y después se restauró `main.jsx`:
+
+  | Texto buscado en el JS de producción | Apariciones |
+  |--------------------------------------|-------------|
+  | `servidor de estrenos` (el mensaje de error real) | 1 |
+  | `Marea de ne` (datos de los estrenos) | 1 |
+  | `URLSearchParams` (lectura de la URL) | **0** |
+  | `lento` (modo de simulación) | **0** |
+
+  El servicio y los datos están, pero el código de simulación no existe en producción.
+- **No hace falta código de producción especial para las capturas:** la simulación vive en el
+  servicio, detrás de `import.meta.env.DEV`, y los componentes no la conocen. Cumple la regla de
+  `CLAUDE.md` de forzar estados solo para las capturas sin ensuciar la producción.
+
+### El adaptador ampliado
+
+`release_date` → `releaseDate`. Solo se aceptan fechas reales en formato `YYYY-MM-DD`: no valen
+`2026-02-30`, `04/12/2026` ni `2026-12-4`. La fecha se guarda como texto ISO y se formateará en la
+interfaz del paso 8.
+
+Para **no romper la cartelera**, `releaseDate` solo se añade al modelo si la API envía una fecha
+válida. Las películas de la cartelera no tienen fecha, así que su modelo sigue siendo exactamente
+`{ id, title, image, synopsis, classification, rating, showtimes }`. La prueba del paso 3 que
+compara las 8 películas campo a campo, y la que comprueba que el modelo tiene solo esos 7 campos,
+siguen pasando sin tocarlas.
+
+### Pruebas
+
+| Archivo | Pruebas nuevas |
+|---------|----------------|
+| `usePremieres.test.js` (7) | Con temporizadores falsos: empieza en `loading`; pasa a `success` a los 1200 ms (no a los 1199) con los datos adaptados (`releaseDate`, sin `release_date`); pasa a `error` con el mensaje; `retry` vuelve a `loading` y luego a `success` (el servicio se simula para fallar solo la primera vez); mensaje claro si el error no trae uno; no procesa la respuesta tras desmontar; una respuesta vieja y lenta no pisa a una nueva |
+| `premieresService.test.js` (8) | Resuelve con los datos de API tras 1200 ms; devuelve una copia; rechaza con el mensaje en español; `?estrenos=error` y `?estrenos=lento` en desarrollo; sin parámetro o con un valor desconocido no cambia nada; **fuera de desarrollo se ignora**; `simulationFromUrl` lee la URL real |
+| `adaptMovie.test.js` (+4) | `release_date` → `releaseDate`; sin fecha no aparece el campo (la cartelera no cambia); fechas inválidas descartadas; los 6 estrenos se adaptan con su fecha y su póster |
+
+### Evidencias
+
+| Evidencia | Explicación |
+|-----------|-------------|
+| [18_paso7_tests.txt](../../Evidencias_lab11/18_paso7_tests.txt) | Salida detallada de las pruebas: 13 archivos y 77 pruebas superadas, 19 de ellas nuevas en este paso |
+
+### Resultados
+
+| Comando | Resultado |
+|---------|-----------|
+| `npm test` | 13 archivos, 77 pruebas superadas (58 anteriores + 19 nuevas) |
+| `npm run lint` | Sin errores ni avisos |
+| `npm run build` | Correcto: 43 módulos, JS 243.49 kB (77.34 kB gzip). Los estrenos aún no se usan en pantalla, así que todavía no entran en el bundle |

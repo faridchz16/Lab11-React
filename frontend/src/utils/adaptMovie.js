@@ -22,9 +22,19 @@ function toShowtimes(value) {
   return Array.isArray(value) ? value.filter((time) => toText(time) !== '') : []
 }
 
+// Accepts only a real calendar date written as YYYY-MM-DD; anything else is null.
+function toReleaseDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
+  const date = new Date(`${value}T00:00:00Z`)
+  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value) ? value : null
+}
+
 // Maps one API movie to { id, title, image, synopsis, classification, rating, showtimes }.
+// Premieres also bring release_date, which becomes releaseDate (ISO text, formatted by the UI).
+// Billboard movies have no release date, so their model stays exactly as before.
 export function adaptMovie(apiMovie = {}) {
   const movie = apiMovie ?? {}
+  const releaseDate = toReleaseDate(movie.release_date)
   return {
     id: movie.id ?? null,
     title: toText(movie.title, 'Sin título'),
@@ -34,6 +44,7 @@ export function adaptMovie(apiMovie = {}) {
     classification: toText(movie.certification, UNKNOWN_CLASSIFICATION),
     rating: toRating(movie.vote_average),
     showtimes: toShowtimes(movie.show_times),
+    ...(releaseDate && { releaseDate }),
   }
 }
 
