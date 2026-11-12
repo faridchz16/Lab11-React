@@ -83,8 +83,39 @@ input {
   color: var(--color-text-muted);
 }
 
+.text-xs {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+}
+
 .text-sm {
   font-size: var(--font-size-sm);
+}
+
+.text-lg {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-lg);
+}
+
+.text-xl {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-xl);
+}
+
+.font-regular {
+  font-weight: var(--font-weight-regular);
+}
+
+.font-medium {
+  font-weight: var(--font-weight-medium);
+}
+
+.font-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.font-bold {
+  font-weight: var(--font-weight-bold);
 }
 
 /* Form building blocks shared by every form of the app. */
@@ -137,6 +168,58 @@ input {
   max-width: var(--container-max-width);
   margin-inline: auto;
   padding-inline: var(--space-4);
+}
+
+/* Page section with consistent vertical rhythm. */
+.section {
+  padding-block: var(--section-space);
+}
+
+/*
+ * Grid whose column count comes from the --columns custom property.
+ * A component (or the useWindowSize hook) sets it inline: style={{ '--columns': 3 }}.
+ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--columns, 1), minmax(var(--grid-min-column), 1fr));
+  gap: var(--grid-gap);
+}
+
+/* Loading placeholder with a moving highlight (shimmer). */
+.skeleton {
+  display: block;
+  border-radius: var(--skeleton-radius);
+  background-color: var(--skeleton-base);
+  background-image: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer var(--skeleton-duration) ease-in-out infinite;
+}
+
+.skeleton-text {
+  height: 1em;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
+/* Users who ask for less motion get a static placeholder. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background-image: none;
+  }
 }
 
 :focus-visible {

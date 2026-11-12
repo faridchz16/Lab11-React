@@ -36,6 +36,21 @@ No modificar el backend Django (`config/`, `quiz/`, `agent/`, `quizctl.py`, `man
   - `npm run lint` — ESLint
   - `npm test` — pruebas con Vitest y Testing Library
 
+## Capturas de evidencia
+
+`scripts/capture.mjs` (en la raíz) toma capturas con Playwright, que no es dependencia del
+proyecto: se descarga con npx. Requiere `npm run dev` en marcha.
+
+```bash
+npx -y playwright@1.56.1 install chromium        # solo la primera vez
+npx -y -p playwright@1.56.1 node scripts/capture.mjs --full --out Evidencias_lab11/NN_x.png
+```
+
+Opciones: `--mobile` (390x844; por defecto 1440x900), `--full` o `--selector <css>`, acciones
+en orden (`--click`, `--type "<css>=texto"`, `--press`, `--wait <css>`, `--wait-text`,
+`--sleep <ms>`, `--eval <js>`), `--storage clave=valor` para `localStorage` y
+`--console archivo.txt` para guardar la consola. La lista completa está en la cabecera del script.
+
 ## Reglas
 
 - Componentes **funcionales** con nombre en **PascalCase**.
@@ -50,5 +65,10 @@ No modificar el backend Django (`config/`, `quiz/`, `agent/`, `quizctl.py`, `man
 - Avisos emergentes con **`react-hot-toast`** y carrusel con **`swiper`**.
 - Los componentes de presentación **no saben cómo se muestra un aviso**: el `toast` lo lanza
   quien tiene el estado (por ejemplo, `App`); el hijo solo avisa con su función de props.
+- En cada paso del laboratorio, toma con `scripts/capture.mjs` las capturas que pide la guía para
+  ese paso, guárdalas en `Evidencias_lab11/` con nombre numerado (`NN_descripcion.png`),
+  enlázalas en `frontend/docs/ENTREGABLE_LAB11.md` con su explicación y súbelas en el commit de
+  ese paso. Si un estado es difícil de ver (carga, error, aviso emergente), prepara una forma de
+  forzarlo solo para la captura, sin ensuciar el código de producción.
 - **Código y comentarios en inglés**; **explicaciones al usuario en español**.
 - **Un commit por tarea**, con el mensaje en español.
